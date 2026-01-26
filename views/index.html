@@ -517,14 +517,6 @@
         durationDisplay.textContent = formatTime(audio.duration);
     });
 
-    // Click sur la barre de progression
-    progressBar.addEventListener('click', (e) => {
-        const rect = progressBar.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const percentage = clickX / rect.width;
-        audio.currentTime = percentage * audio.duration;
-    });
-
     // Format temps
     function formatTime(seconds) {
         if (isNaN(seconds)) return '0:00';
