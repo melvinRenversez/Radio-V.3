@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Library - RadioMel</title>
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        min-height: 100vh;
+        background: #0a0a0a;
+        font-family: 'Inter', sans-serif;
+        color: #fff;
+        position: relative;
+        overflow-x: hidden;
+        padding: 40px 20px;
+    }
+
+    /* Canvas pour les particules */
+    #particleCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Container principal */
+    .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Header */
+    .header {
+        margin-bottom: 48px;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 48px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 16px;
+        letter-spacing: -1px;
+    }
+
+    .subtitle {
+        font-size: 16px;
+        font-weight: 400;
+        color: #666;
+        margin-bottom: 24px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 14px 28px;
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 15px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .action-btn:hover {
+        background: #1f1f1f;
+        border-color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .action-btn:hover::before {
+        opacity: 1;
+    }
+
+    .action-btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-icon {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+        transition: transform 0.3s ease;
+    }
+
+    .action-btn:hover .btn-icon {
+        transform: scale(1.1);
+    }
+
+    /* Barre de recherche et filtres */
+    .filters-container {
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 32px;
+        margin-bottom: 40px;
+    }
+
+    .search-wrapper {
+        position: relative;
+        margin-bottom: 24px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 16px 24px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .search-input::placeholder {
+        color: #666;
+    }
+
+    /* Filtres */
+    .filters-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 10px 20px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        color: #666;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .filter-btn:hover {
+        background: #2a2a2a;
+        color: #fff;
+    }
+
+    .filter-btn.active {
+        background: #fff;
+        color: #0a0a0a;
+        border-color: #fff;
+    }
+
+    .clear-filters {
+        margin-left: auto;
+        padding: 10px 20px;
+        background: transparent;
+        border: 1px solid #444;
+        border-radius: 12px;
+        color: #666;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .clear-filters:hover {
+        border-color: #fff;
+        color: #fff;
+    }
+
+    /* Stats */
+    .stats {
+        display: flex;
+        gap: 24px;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #2a2a2a;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    /* Grid des cartes */
+    .grid-card {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    /* Carte */
+    .card {
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        border-color: #2a2a2a;
+    }
+
+    .card:hover::before {
+        opacity: 1;
+    }
+
+    .card-image-wrapper {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 16px;
+        background: #1a1a1a;
+        position: relative;
+    }
+
+    .card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover img {
+        transform: scale(1.05);
+    }
+
+    /* Play overlay */
+    .play-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .card:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .play-overlay::before {
+        content: '';
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 8px 0 8px 14px;
+        border-color: transparent transparent transparent #0a0a0a;
+        margin-left: 3px;
+    }
+
+    /* Info de la carte */
+    #name, .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 6px;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #artist, .card-artist {
+        font-size: 14px;
+        font-weight: 400;
+        color: #666;
+        display: block;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #annee, .card-year {
+        font-size: 12px;
+        font-weight: 300;
+        color: #444;
+        display: block;
+    }
+
+    /* Message vide */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #666;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-state-text {
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 36px;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .filters-container {
+            padding: 24px;
+        }
+
+        .filters-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .clear-filters {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .grid-card {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .stats {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+<body>
+    <!-- Canvas pour les particules -->
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Music Library</h1>
+            <p class="subtitle">Explore your collection</p>
+            <div class="header-actions">
+                <button class="action-btn" id="addTitleBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Add Title
+                </button>
+                <button class="action-btn" id="addArtistBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Add Artist
+                </button>
+                <button class="action-btn" id="addCoverBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    Add Cover
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtres et recherche -->
+        <div class="filters-container">
+            <div class="search-wrapper">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by title, artist or year...">
+            </div>
+
+            <div class="filters-row">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-sort="default">Default</button>
+                    <button class="filter-btn" data-sort="title">Title A-Z</button>
+                    <button class="filter-btn" data-sort="artist">Artist A-Z</button>
+                    <button class="filter-btn" data-sort="year-new">Newest</button>
+                    <button class="filter-btn" data-sort="year-old">Oldest</button>
+                </div>
+                <button class="clear-filters" id="clearFilters">Clear Filters</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Tracks</span>
+                    <span class="stat-value" id="totalTracks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Showing</span>
+                    <span class="stat-value" id="showingTracks">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid des cartes -->
+        <div class="grid-card" id="gridContainer">
+            <% allTitles.forEach(t => { %>
+                <div class="card" data-title="<%= t.titre.toLowerCase() %>" data-artist="<%= t.artiste.toLowerCase() %>" data-year="<%= t.annee %>">
+                    <div class="card-image-wrapper">
+                        <img src="../Covers/<%= t.cover %>" alt="<%= t.titre %>">
+                        <div class="play-overlay"></div>
+                    </div>
+                    <span class="card-title"><%= t.titre %></span>
+                    <span class="card-artist"><%= t.artiste  %></span>
+                    <span class="card-year"><%= t.annee %></span>
+                </div>
+            <% }) %>
+        </div>
+
+        <!-- Message si vide -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">♪</div>
+            <p class="empty-state-text">No tracks found</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DONNÉES
+        // ============================================
+        
+        let allTitles = [];
+
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        
+        let filteredTitles = [...allTitles];
+        let currentSort = 'default';
+
+        const gridContainer = document.getElementById('gridContainer');
+        const searchInput = document.getElementById('searchInput');
+        const emptyState = document.getElementById('emptyState');
+        const totalTracksEl = document.getElementById('totalTracks');
+        const showingTracksEl = document.getElementById('showingTracks');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+
+        // ============================================
+        // FONCTIONS
+        // ============================================
+
+        // Afficher les cartes
+        function renderCards(tracks) {
+            // Cacher toutes les cartes d'abord
+            allCards.forEach(card => {
+                card.style.display = 'none';
+            });
+
+            if (tracks.length === 0) {
+                gridContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+            } else {
+                gridContainer.style.display = 'grid';
+                emptyState.style.display = 'none';
+                
+                // Afficher seulement les cartes filtrées dans l'ordre
+                tracks.forEach(track => {
+                    const card = allCards.find(c => {
+                        const cardTitle = c.querySelector('.card-title').textContent.trim();
+                        const cardArtist = c.querySelector('.card-artist').textContent.trim();
+                        return cardTitle === track.titre && cardArtist === track.artiste;
+                    });
+                    if (card) {
+                        card.style.display = 'block';
+                        // Réorganiser l'ordre en déplaçant dans le DOM
+                        gridContainer.appendChild(card);
+                    }
+                });
+            }
+
+            // Mettre à jour les stats
+            totalTracksEl.textContent = allTitles.length;
+            showingTracksEl.textContent = tracks.length;
+        }
+
+        // Trier les tracks
+        function sortTracks(tracks, sortType) {
+            const sorted = [...tracks];
+            
+            switch(sortType) {
+                case 'title':
+                    return sorted.sort((a, b) => a.titre.localeCompare(b.titre));
+                case 'artist':
+                    return sorted.sort((a, b) => a.artiste.localeCompare(b.artiste));
+                case 'year-new':
+                    return sorted.sort((a, b) => parseInt(b.annee) - parseInt(a.annee));
+                case 'year-old':
+                    return sorted.sort((a, b) => parseInt(a.annee) - parseInt(b.annee));
+                default:
+                    return sorted;
+            }
+        }
+
+        // Filtrer les tracks
+        function filterTracks(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            
+            if (term === '') {
+                filteredTitles = [...allTitles];
+            } else {
+                filteredTitles = allTitles.filter(track => 
+                    track.titre.toLowerCase().includes(term) ||
+                    track.artiste.toLowerCase().includes(term) ||
+                    track.annee.includes(term)
+                );
+            }
+
+            const sorted = sortTracks(filteredTitles, currentSort);
+            renderCards(sorted);
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        // Recherche
+        searchInput.addEventListener('input', (e) => {
+            filterTracks(e.target.value);
+        });
+
+        // Boutons de tri
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Retirer active de tous
+                filterBtns.forEach(b => b.classList.remove('active'));
+                // Ajouter active au cliqué
+                btn.classList.add('active');
+                
+                currentSort = btn.dataset.sort;
+                const sorted = sortTracks(filteredTitles, currentSort);
+                renderCards(sorted);
+            });
+        });
+
+        // Clear filters
+        clearFiltersBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            currentSort = 'default';
+            
+            // Reset active button
+            filterBtns.forEach(b => b.classList.remove('active'));
+            filterBtns[0].classList.add('active');
+            
+            filteredTitles = [...allTitles];
+            renderCards(filteredTitles);
+        });
+
+        // Action buttons
+        document.getElementById('addTitleBtn').addEventListener('click', () => {
+            // Rediriger vers la page d'ajout de titre ou ouvrir un modal
+            window.location.href = '/add-title'; // À adapter selon votre routing
+        });
+
+        document.getElementById('addArtistBtn').addEventListener('click', () => {
+            // Rediriger vers la page d'ajout d'artiste
+            window.location.href = '/add-artist'; // À adapter selon votre routing
+        });
+
+        document.getElementById('addCoverBtn').addEventListener('click', () => {
+            // Rediriger vers la page d'ajout de cover
+            window.location.href = '/add-cover'; // À adapter selon votre routing
+        });
+
+        // ============================================
+        // INITIALISATION
+        // ============================================
+
+        // Récupérer toutes les cartes déjà rendues par EJS
+        const allCards = Array.from(document.querySelectorAll('.card'));
+        
+        // Construire le tableau allTitles à partir des cartes DOM
+        allTitles = allCards.map(card => ({
+            titre: card.querySelector('.card-title').textContent.trim(),
+            artiste: card.querySelector('.card-artist').textContent.trim(),
+            annee: card.querySelector('.card-year').textContent.trim(),
+            cover: card.querySelector('img').src.split('/').pop()
+        }));
+
+        // Initialiser filteredTitles
+        filteredTitles = [...allTitles];
+
+        // Mettre à jour les stats initiales
+        totalTracksEl.textContent = allTitles.length;
+        showingTracksEl.textContent = allTitles.length;
+
+        // ============================================
+        // SYSTÈME DE PARTICULES CANVAS
+        // ============================================
+        
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        const particles = [];
+            var particleCount;
+
+    if (window.innerWidth < 400) {
+        particleCount = 50;
+    }else if (window.innerWidth < 600) {
+        particleCount = 100;
+    }else if (window.innerWidth < 900) {
+        particleCount = 150;
+    }else if (window.innerWidth < 1200) {
+        particleCount = 250;
+    }else if (window.innerWidth < 1600) {
+        particleCount = 350;
+    }else if (window.innerWidth < 2000) {
+        particleCount = 550;
+    }else {
+        particleCount = 700;
+    }
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.globalAlpha = 0.1;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 120) {
+                        ctx.strokeStyle = '#666666';
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animateParticles);
+        }
+        
+        animateParticles();
+    </script>
+</body>
+
+</html>

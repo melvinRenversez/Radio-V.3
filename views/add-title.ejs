@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Title - RadioMel</title>
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        min-height: 100vh;
+        background: #0a0a0a;
+        font-family: 'Inter', sans-serif;
+        color: #fff;
+        position: relative;
+        overflow-x: hidden;
+        padding: 40px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Canvas pour les particules */
+    #particleCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Container principal */
+    .form-container {
+        max-width: 600px;
+        width: 100%;
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 32px;
+        padding: 48px;
+        position: relative;
+        z-index: 1;
+        border: 1px solid #2a2a2a;
+    }
+
+    /* Header */
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .form-header h1 {
+        font-size: 36px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 12px;
+        letter-spacing: -1px;
+    }
+
+    .form-header p {
+        font-size: 15px;
+        font-weight: 400;
+        color: #666;
+    }
+
+    /* Back button */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: transparent;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        color: #666;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        margin-bottom: 32px;
+        text-decoration: none;
+    }
+
+    .back-btn:hover {
+        border-color: #fff;
+        color: #fff;
+        transform: translateX(-4px);
+    }
+
+    .back-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Form */
+    .form-group {
+        margin-bottom: 28px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 16px 20px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .form-input::placeholder {
+        color: #666;
+    }
+
+    /* Select custom */
+    .custom-select-wrapper {
+        position: relative;
+    }
+
+    .custom-select {
+        width: 100%;
+        padding: 16px 20px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .custom-select:focus {
+        outline: none;
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .custom-select option {
+        background: #1a1a1a;
+        color: #fff;
+        padding: 12px;
+    }
+
+    /* Custom Artist Select with Search */
+    .custom-artist-select {
+        position: relative;
+        width: 100%;
+    }
+
+    .artist-select-trigger {
+        width: 100%;
+        padding: 16px 20px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .artist-select-trigger:hover {
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .artist-select-trigger.active {
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .artist-select-placeholder {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        color: #666;
+    }
+
+    .artist-select-placeholder.has-value {
+        color: #fff;
+    }
+
+    .artist-select-placeholder svg {
+        width: 24px;
+        height: 24px;
+        color: #666;
+    }
+
+    .artist-select-arrow {
+        width: 20px;
+        height: 20px;
+        color: #666;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .artist-select-trigger.active .artist-select-arrow {
+        transform: rotate(180deg);
+    }
+
+    .artist-select-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 12px;
+        max-height: 400px;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 100;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .artist-select-dropdown.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .artist-select-search {
+        margin-bottom: 12px;
+    }
+
+    .artist-search-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: #0a0a0a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .artist-search-input:focus {
+        outline: none;
+        border-color: #666;
+    }
+
+    .artist-search-input::placeholder {
+        color: #666;
+    }
+
+    .artist-select-options {
+        max-height: 300px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .artist-select-options::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .artist-select-options::-webkit-scrollbar-track {
+        background: #0a0a0a;
+        border-radius: 3px;
+    }
+
+    .artist-select-options::-webkit-scrollbar-thumb {
+        background: #2a2a2a;
+        border-radius: 3px;
+    }
+
+    .artist-select-options::-webkit-scrollbar-thumb:hover {
+        background: #444;
+    }
+
+    .artist-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .artist-option:hover {
+        background: #2a2a2a;
+        border-color: #444;
+    }
+
+    .artist-option.selected {
+        background: #2a2a2a;
+        border-color: #fff;
+    }
+
+    .artist-option-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #0a0a0a;
+        border: 1px solid #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .artist-option-icon svg {
+        width: 20px;
+        height: 20px;
+        color: #666;
+    }
+
+    .artist-option.selected .artist-option-icon {
+        border-color: #fff;
+    }
+
+    .artist-option.selected .artist-option-icon svg {
+        color: #fff;
+    }
+
+    .artist-option-text {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 400;
+        flex: 1;
+    }
+
+    .artist-option.hidden {
+        display: none;
+    }
+
+    /* Custom Cover Select with Images */
+    .custom-cover-select {
+        position: relative;
+        width: 100%;
+    }
+
+    .cover-select-trigger {
+        width: 100%;
+        padding: 16px 20px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .cover-select-trigger:hover {
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .cover-select-trigger.active {
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .cover-select-placeholder {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        color: #666;
+    }
+
+    .cover-select-placeholder.has-value {
+        color: #fff;
+    }
+
+    .cover-select-placeholder img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #2a2a2a;
+    }
+
+    .cover-select-arrow {
+        width: 20px;
+        height: 20px;
+        color: #666;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .cover-select-trigger.active .cover-select-arrow {
+        transform: rotate(180deg);
+    }
+
+    .cover-select-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 12px;
+        max-height: 400px;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 100;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .cover-select-dropdown.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .cover-select-search {
+        margin-bottom: 12px;
+    }
+
+    .cover-search-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: #0a0a0a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .cover-search-input:focus {
+        outline: none;
+        border-color: #666;
+    }
+
+    .cover-search-input::placeholder {
+        color: #666;
+    }
+
+    .cover-select-options {
+        max-height: 300px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .cover-select-options::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .cover-select-options::-webkit-scrollbar-track {
+        background: #0a0a0a;
+        border-radius: 3px;
+    }
+
+    .cover-select-options::-webkit-scrollbar-thumb {
+        background: #2a2a2a;
+        border-radius: 3px;
+    }
+
+    .cover-select-options::-webkit-scrollbar-thumb:hover {
+        background: #444;
+    }
+
+    .cover-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .cover-option:hover {
+        background: #2a2a2a;
+        border-color: #444;
+    }
+
+    .cover-option.selected {
+        background: #2a2a2a;
+        border-color: #fff;
+    }
+
+    .cover-option-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #2a2a2a;
+        flex-shrink: 0;
+    }
+
+    .cover-option-text {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 400;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cover-option.hidden {
+        display: none;
+    }
+
+    /* Arrow icon for select */
+    .custom-select-wrapper::after {
+        content: '';
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 6px 5px 0 5px;
+        border-color: #666 transparent transparent transparent;
+        pointer-events: none;
+    }
+
+    /* Cover preview section */
+    .cover-preview-section {
+        margin-top: 16px;
+        padding: 20px;
+        background: #1a1a1a;
+        border-radius: 16px;
+        display: none;
+    }
+
+    .cover-preview-section.active {
+        display: block;
+    }
+
+    .cover-preview-label {
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .cover-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid #2a2a2a;
+    }
+
+    /* Submit button */
+    .submit-btn {
+        width: 100%;
+        padding: 18px;
+        background: #fff;
+        border: none;
+        border-radius: 16px;
+        color: #0a0a0a;
+        font-size: 16px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        margin-top: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+    }
+
+    .submit-btn:hover::before {
+        opacity: 1;
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Required indicator */
+    .required {
+        color: #ff4444;
+        margin-left: 4px;
+    }
+
+    /* Helper text */
+    .helper-text {
+        font-size: 12px;
+        color: #666;
+        margin-top: 8px;
+        font-weight: 400;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 32px 24px;
+        }
+
+        .form-header h1 {
+            font-size: 28px;
+        }
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(10, 10, 10, 0.95);
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loading-content {
+        text-align: center;
+        max-width: 400px;
+        padding: 48px;
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 32px;
+        border: 1px solid #2a2a2a;
+    }
+
+    .loading-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 24px;
+        position: relative;
+    }
+
+    .loading-icon svg {
+        width: 100%;
+        height: 100%;
+        animation: rotate 2s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .loading-icon svg circle {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-dasharray: 200;
+        stroke-dashoffset: 0;
+        animation: dash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes dash {
+        0% {
+            stroke-dashoffset: 200;
+        }
+        50% {
+            stroke-dashoffset: 50;
+        }
+        100% {
+            stroke-dashoffset: 200;
+        }
+    }
+
+    .loading-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 12px;
+    }
+
+    .loading-text {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 32px;
+    }
+
+    .loading-bar-wrapper {
+        width: 100%;
+        height: 4px;
+        background: #1a1a1a;
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .loading-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #fff 0%, #666 50%, #fff 100%);
+        background-size: 200% 100%;
+        border-radius: 2px;
+        animation: loading 1.5s ease-in-out infinite;
+        width: 100%;
+    }
+
+    @keyframes loading {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    .loading-dots {
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .loading-dot {
+        width: 8px;
+        height: 8px;
+        background: #666;
+        border-radius: 50%;
+        animation: dotPulse 1.4s ease-in-out infinite;
+    }
+
+    .loading-dot:nth-child(1) {
+        animation-delay: 0s;
+    }
+
+    .loading-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .loading-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes dotPulse {
+        0%, 100% {
+            background: #666;
+            transform: scale(1);
+        }
+        50% {
+            background: #fff;
+            transform: scale(1.2);
+        }
+    }
+</style>
+
+<body>
+    <!-- Canvas pour les particules -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-icon">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45"></circle>
+                </svg>
+            </div>
+            <h2 class="loading-title">Uploading Track</h2>
+            <p class="loading-text">Please wait while we process your music file...</p>
+            <div class="loading-bar-wrapper">
+                <div class="loading-bar"></div>
+            </div>
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <!-- Back button -->
+        <a href="/admin" class="back-btn">
+            <svg class="back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to Library
+        </a>
+
+        <!-- Header -->
+        <div class="form-header">
+            <h1>Add New Title</h1>
+            <p>Fill in the details to add a new track</p>
+        </div>
+
+        <!-- Form -->
+        <form action="/add-title" method="POST" id="addTitleForm">
+            <!-- Title -->
+            <div class="form-group">
+                <label class="form-label">
+                    Title <span class="required">*</span>
+                </label>
+                <input type="text" name="title" class="form-input" placeholder="Enter track title" required>
+                <p class="helper-text">The name of the track</p>
+            </div>
+
+            <!-- URL -->
+            <div class="form-group">
+                <label class="form-label">
+                    URL <span class="required">*</span>
+                </label>
+                <input type="text" name="url" class="form-input" placeholder="track-file.mp3" required>
+                <p class="helper-text">Filename of the audio file</p>
+            </div>
+
+            <!-- Year -->
+            <div class="form-group">
+                <label class="form-label">Year</label>
+                <input type="text" name="year" class="form-input" placeholder="2025" pattern="[0-9]{4}" maxlength="4">
+                <p class="helper-text">Release year (optional)</p>
+            </div>
+
+            <!-- Artist Select -->
+            <div class="form-group">
+                <label class="form-label">
+                    Artist <span class="required">*</span>
+                </label>
+                
+                <!-- Hidden input pour le formulaire -->
+                <input type="hidden" name="artist" id="artistInput" required>
+                
+                <!-- Custom select avec recherche -->
+                <div class="custom-artist-select" id="customArtistSelect">
+                    <div class="artist-select-trigger" id="artistSelectTrigger">
+                        <div class="artist-select-placeholder">
+                            <span>Select an artist</span>
+                        </div>
+                        <svg class="artist-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    
+                    <div class="artist-select-dropdown" id="artistSelectDropdown">
+                        <div class="artist-select-search">
+                            <input type="text" id="artistSearchInput" class="artist-search-input" placeholder="Search artists...">
+                        </div>
+                        <div class="artist-select-options" id="artistSelectOptions">
+                            <% artistes.forEach(a => { %>
+                                <div class="artist-option" data-value="<%= a.id %>">
+                                    <div class="artist-option-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    </div>
+                                    <span class="artist-option-text"><%= a.nom %></span>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cover Select -->
+            <div class="form-group">
+                <label class="form-label">
+                    Cover <span class="required">*</span>
+                </label>
+                
+                <!-- Hidden input pour le formulaire -->
+                <input type="hidden" name="cover" id="coverInput" required>
+                
+                <!-- Custom select avec images -->
+                <div class="custom-cover-select" id="customCoverSelect">
+                    <div class="cover-select-trigger" id="coverSelectTrigger">
+                        <div class="cover-select-placeholder">
+                            <span>Select a cover</span>
+                        </div>
+                        <svg class="cover-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    
+                    <div class="cover-select-dropdown" id="coverSelectDropdown">
+                        <div class="cover-select-search">
+                            <input type="text" id="coverSearchInput" class="cover-search-input" placeholder="Search covers...">
+                        </div>
+                        <div class="cover-select-options" id="coverSelectOptions">
+                            <% covers.forEach(c => { %>
+                                <div class="cover-option" data-value="<%= c.id %>" data-url="../Covers/<%= c.url %>">
+                                    <img src="../Covers/<%= c.url %>" alt="<%= c.url %>" class="cover-option-img">
+                                    <span class="cover-option-text"><%= c.url %></span>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn">Add Track</button>
+        </form>
+    </div>
+
+    <script>
+        // ============================================
+        // FORM SUBMISSION & LOADING OVERLAY
+        // ============================================
+        
+        const addTitleForm = document.getElementById('addTitleForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        addTitleForm.addEventListener('submit', function(e) {
+            
+            // Afficher le loading overlay
+            loadingOverlay.classList.add('active');
+            
+            // Le formulaire va se soumettre normalement
+            // Si vous voulez empêcher la soumission pour tester, décommentez la ligne suivante:
+            // e.preventDefault();
+        });
+
+        // ============================================
+        // CUSTOM ARTIST SELECT WITH SEARCH
+        // ============================================
+        
+        const customArtistSelect = document.getElementById('customArtistSelect');
+        const artistSelectTrigger = document.getElementById('artistSelectTrigger');
+        const artistSelectDropdown = document.getElementById('artistSelectDropdown');
+        const artistSelectOptions = document.getElementById('artistSelectOptions');
+        const artistSearchInput = document.getElementById('artistSearchInput');
+        const artistInput = document.getElementById('artistInput');
+        const artistOptions = document.querySelectorAll('.artist-option');
+
+        // Toggle dropdown
+        artistSelectTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isActive = artistSelectDropdown.classList.contains('active');
+            
+            // Fermer le dropdown des covers si ouvert
+            if (coverSelectDropdown.classList.contains('active')) {
+                closeDropdown();
+            }
+            
+            if (isActive) {
+                closeArtistDropdown();
+            } else {
+                openArtistDropdown();
+            }
+        });
+
+        function openArtistDropdown() {
+            artistSelectDropdown.classList.add('active');
+            artistSelectTrigger.classList.add('active');
+            artistSearchInput.focus();
+        }
+
+        function closeArtistDropdown() {
+            artistSelectDropdown.classList.remove('active');
+            artistSelectTrigger.classList.remove('active');
+            artistSearchInput.value = '';
+            // Réafficher toutes les options
+            artistOptions.forEach(opt => opt.classList.remove('hidden'));
+        }
+
+        // Fermer au clic extérieur
+        document.addEventListener('click', (e) => {
+            if (!customArtistSelect.contains(e.target) && !customCoverSelect.contains(e.target)) {
+                closeArtistDropdown();
+            }
+        });
+
+        // Sélection d'une option
+        artistOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const value = option.dataset.value;
+                const text = option.querySelector('.artist-option-text').textContent;
+                
+                // Mettre à jour l'input caché
+                artistInput.value = value;
+                
+                // Retirer la sélection des autres options
+                artistOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                
+                // Mettre à jour le trigger
+                const placeholder = artistSelectTrigger.querySelector('.artist-select-placeholder');
+                placeholder.classList.add('has-value');
+                placeholder.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>${text}</span>
+                `;
+                
+                // Fermer le dropdown
+                closeArtistDropdown();
+            });
+        });
+
+        // Recherche dans les artistes
+        artistSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            artistOptions.forEach(option => {
+                const text = option.querySelector('.artist-option-text').textContent.toLowerCase();
+                
+                if (text.includes(searchTerm)) {
+                    option.classList.remove('hidden');
+                } else {
+                    option.classList.add('hidden');
+                }
+            });
+        });
+
+        // Empêcher la fermeture au clic dans le dropdown
+        artistSelectDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // ============================================
+        // CUSTOM COVER SELECT WITH IMAGES
+        // ============================================
+        
+        const customCoverSelect = document.getElementById('customCoverSelect');
+        const coverSelectTrigger = document.getElementById('coverSelectTrigger');
+        const coverSelectDropdown = document.getElementById('coverSelectDropdown');
+        const coverSelectOptions = document.getElementById('coverSelectOptions');
+        const coverSearchInput = document.getElementById('coverSearchInput');
+        const coverInput = document.getElementById('coverInput');
+        const coverOptions = document.querySelectorAll('.cover-option');
+
+        // Toggle dropdown
+        coverSelectTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isActive = coverSelectDropdown.classList.contains('active');
+            
+            // Fermer le dropdown des artistes si ouvert
+            if (artistSelectDropdown.classList.contains('active')) {
+                closeArtistDropdown();
+            }
+            
+            if (isActive) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+
+        function openDropdown() {
+            coverSelectDropdown.classList.add('active');
+            coverSelectTrigger.classList.add('active');
+            coverSearchInput.focus();
+        }
+
+        function closeDropdown() {
+            coverSelectDropdown.classList.remove('active');
+            coverSelectTrigger.classList.remove('active');
+            coverSearchInput.value = '';
+            // Réafficher toutes les options
+            coverOptions.forEach(opt => opt.classList.remove('hidden'));
+        }
+
+        // Fermer au clic extérieur
+        document.addEventListener('click', (e) => {
+            if (!customCoverSelect.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        // Sélection d'une option
+        coverOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const value = option.dataset.value;
+                const url = option.dataset.url;
+                const text = option.querySelector('.cover-option-text').textContent;
+                
+                // Mettre à jour l'input caché
+                coverInput.value = value;
+                
+                // Retirer la sélection des autres options
+                coverOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                
+                // Mettre à jour le trigger
+                const placeholder = coverSelectTrigger.querySelector('.cover-select-placeholder');
+                placeholder.classList.add('has-value');
+                placeholder.innerHTML = `
+                    <img src="${url}" alt="${text}">
+                    <span>${text}</span>
+                `;
+                
+                // Fermer le dropdown
+                closeDropdown();
+            });
+        });
+
+        // Recherche dans les covers
+        coverSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            coverOptions.forEach(option => {
+                const text = option.querySelector('.cover-option-text').textContent.toLowerCase();
+                
+                if (text.includes(searchTerm)) {
+                    option.classList.remove('hidden');
+                } else {
+                    option.classList.add('hidden');
+                }
+            });
+        });
+
+        // Empêcher la fermeture au clic dans le dropdown
+        coverSelectDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // ============================================
+        // SYSTÈME DE PARTICULES CANVAS
+        // ============================================
+        
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        const particles = [];
+            var particleCount;
+
+    if (window.innerWidth < 400) {
+        particleCount = 50;
+    }else if (window.innerWidth < 600) {
+        particleCount = 100;
+    }else if (window.innerWidth < 900) {
+        particleCount = 150;
+    }else if (window.innerWidth < 1200) {
+        particleCount = 250;
+    }else if (window.innerWidth < 1600) {
+        particleCount = 350;
+    }else if (window.innerWidth < 2000) {
+        particleCount = 550;
+    }else {
+        particleCount = 700;
+    }
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.globalAlpha = 0.1;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 120) {
+                        ctx.strokeStyle = '#666666';
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animateParticles);
+        }
+        
+        animateParticles();
+    </script>
+</body>
+
+</html>

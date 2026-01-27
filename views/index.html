@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Wave Radio</title>
+    <title>RadioMel</title>
 </head>
 
     <style>
@@ -335,7 +335,8 @@
     const volumeBar = document.getElementById("volumeBar");
     const volumeValue = document.getElementById("volumeValue");
 
-    const IP = "172.27.212.88"
+    // const IP = "172.27.212.88"
+    const IP = "192.168.0.5"
 
     let isPlaying = false;
     let currentTrackPlayedAt;
@@ -421,7 +422,7 @@
                     console.error('Erreur lecture:', err);
                 });
 
-                pochette.src = "/Covers/" + data.trackInfo.pochette;
+                pochette.src = "/Covers/" + data.trackInfo.cover;
                 name.textContent = data.trackInfo.titre;
                 artist.textContent = data.trackInfo.artiste;
                 annee.textContent = data.trackInfo.annee ?? "0000";
