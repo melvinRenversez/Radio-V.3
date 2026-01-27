@@ -93,6 +93,8 @@ insert into covers(url)values
 select titles.id, titles.titre, titles.url, titles.annee, artistes.nom as artiste, covers.url as cover from titles
 join artistes on artistes.id = fk_artiste
 join covers on covers.id = fk_cover
-where titles.id not in (select fk_title from history limit 4);
+where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);
 
+select * from history order by id desc;
+select fk_title from history order by id limit 4;
 

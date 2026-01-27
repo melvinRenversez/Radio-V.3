@@ -43,10 +43,9 @@ app.get('/', (req, res) => {
 });
 
 
-
 app.get('/admin', async (req, res) => {
 
-    const [rows] = await pool.query("select titles.id, titles.titre, titles.url, titles.annee, artistes.nom as artiste, covers.url as cover from titles join artistes on artistes.id = fk_artiste join covers on covers.id = fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);");
+    const [rows] = await pool.query("SELECT titles.id, COALESCE(titles.titre,'Unknown') AS titre, COALESCE(titles.url,'') AS url, COALESCE(titles.annee,'0000') AS annee, COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste LEFT JOIN covers ON covers.id = titles.fk_cover;");
 
     res.render('admin', { allTitles: rows });
 });
@@ -149,8 +148,8 @@ async function main() {
 
 async function newTrack() {
 
-    getAllTitles();
-    
+    await getAllTitles();
+
     let x = Math.floor(Math.random() * allTitles.length);
     let track = allTitles[x];
     let duration = Math.floor((await parseFile(path.join(musicFolder, track.url))).format.duration);
@@ -184,6 +183,7 @@ async function playTack() {
                 // console.log("Precise time: " + (new Date(nowMySQLms()) - new Date(currentTrack.playedAt)));
                 // console.log("Played at: " + currentTrack.playedAt);
             }
+
         },
         1000
     )
@@ -191,15 +191,16 @@ async function playTack() {
 
 async function getAllTitles() {
     try {
-        const [rows] = await pool.query("select titles.id, titles.titre, titles.url, titles.annee, artistes.nom as artiste, covers.url as cover from titles join artistes on artistes.id = fk_artiste join covers on covers.id = fk_cover ;");
+        const [rows] = await pool.query("select titles.id, titles.titre, titles.url, titles.annee, artistes.nom as artiste, covers.url as cover from titles join artistes on artistes.id = fk_artiste join covers on covers.id = fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);");
         allTitles = rows;
     } catch (err) {
         console.error("Erreur lors de la requête MySQL:", err);
         allTitles = [];
     }
 
+    console.log('✅ Title added to allTitles:');
     for (const title of allTitles) {
-        console.log(title);
+        console.log(title.titre);
     }
 }
 
