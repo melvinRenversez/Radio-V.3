@@ -18,7 +18,11 @@
 
         body {
             min-height: 100vh;
-            background: #0a0a0a;
+            /* background: #0a0a0a; */
+
+            background: linear-gradient(145deg, #0a0a0a, #222222);
+
+
             display: flex;
             justify-content: center;
             align-items: center;
@@ -228,7 +232,6 @@
         .volume-wrapper {
             margin-top: 24px;
             padding-top: 24px;
-            border-top: 1px solid #1a1a1a;
         }
 
         .volume-bar {
@@ -336,7 +339,12 @@
     const volumeValue = document.getElementById("volumeValue");
 
     // const IP = "172.27.212.88"
-    const IP = "192.168.0.5"
+    // const IP = "172.27.44.135"
+
+
+    const IP = (window.location.origin).split('//')[1].split(":")[0];
+
+    // console.log(ui);
 
     let isPlaying = false;
     let currentTrackPlayedAt;
@@ -344,6 +352,8 @@
     let ws = null;
     let reconnectInterval = null;
     let maxVolume = 1.0; // Volume maximum (0.0 à 1.0)
+
+    let colorLine = "#000000";
 
     // Charger le volume sauvegardé depuis localStorage
     function loadSavedVolume() {
@@ -426,6 +436,9 @@
                 name.textContent = data.trackInfo.titre;
                 artist.textContent = data.trackInfo.artiste;
                 annee.textContent = data.trackInfo.annee ?? "0000";
+
+                console.log('Couleur de la ligne:', data.dominantColor);
+                colorLine = data.lineColor;
             }
         };
 
@@ -586,9 +599,7 @@
     const particles = [];
     var particleCount;
 
-    if (window.innerWidth < 400) {
-        particleCount = 50;
-    }else if (window.innerWidth < 600) {
+    if (window.innerWidth < 600) {
         particleCount = 100;
     }else if (window.innerWidth < 900) {
         particleCount = 150;
@@ -610,6 +621,7 @@
     // Animation
     function animateParticles() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        console.log(colorLine);
         
         // Dessiner les connexions entre particules proches
         ctx.globalAlpha = 0.1;
@@ -619,9 +631,10 @@
                 const dy = particles[i].y - particles[j].y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
+
                 if (distance < 120) {
-                    ctx.strokeStyle = '#666666';
-                    ctx.lineWidth = 0.5;
+                    ctx.strokeStyle = colorLine;
+                    ctx.lineWidth = 2;
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);

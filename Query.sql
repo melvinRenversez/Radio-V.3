@@ -1,3 +1,9 @@
+create database radio;
+CREATE USER 'radio_user'@'%' IDENTIFIED BY 'radio_password_123';
+GRANT ALL PRIVILEGES ON radio.* TO 'radio_user'@'%';
+
+	
+
 use radio;
 
 drop table titles;
@@ -75,7 +81,7 @@ join covers on covers.id = fk_cover
 select h.id, titre, played_at
 from history h
 join titles t on t.id = h.fk_title
-order by h.id desc;
+order by h.id desc limit 4;
 
 
 insert into titles(titre, url, fk_cover, fk_artiste)values
@@ -97,4 +103,19 @@ where titles.id not in (select fk_title from(select fk_title from history order 
 
 select * from history order by id desc;
 select fk_title from history order by id limit 4;
+
+
+
+
+
+SELECT titles.id, 
+	COALESCE(titles.titre,'Unknown') AS titre, 
+	COALESCE(titles.url,'') AS url, 
+	COALESCE(titles.annee,'0000') AS annee, 
+	COALESCE(artistes.nom,'Unknown') AS artiste, 
+	COALESCE(covers.url,'default.png') AS cover 
+FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste 
+LEFT JOIN covers ON covers.id = titles.fk_cover
+where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);
+
 

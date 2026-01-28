@@ -5,6 +5,8 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import express from 'express';
 import { execFile } from "child_process";
+import sharp from "sharp";
+import { Console } from 'console';
 
 const pool = mysql.createPool({
     host: 'localhost',
@@ -19,6 +21,7 @@ const pool = mysql.createPool({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const musicFolder = path.join(__dirname, "Music");
+const coversFolder = path.join(__dirname, "Covers");
 
 const app = express();
 const PORT = 3000;
@@ -62,12 +65,10 @@ app.post("/add-title", async (req, res) => {
 
     let { title, url, year, artist, cover } = req.body;
 
-    // Permettre que artist ou cover soient null
     artist = artist || null;
     cover = cover || null;
     year = year || null;
 
-    // Nettoyage du titre pour le fichier
     const safeTitle = title.replace(/[<>:"/\\|?*]+/g, "").trim();
     const outputFile = `${musicFolder}/${safeTitle}.%(ext)s`;
 
@@ -86,11 +87,10 @@ app.post("/add-title", async (req, res) => {
             return res.status(500).send("Download failed");
         }
 
-        // ✅ Insert DB seulement si download réussi
         try {
             await pool.query(
                 `INSERT INTO titles (titre, url, annee, fk_artiste, fk_cover)
-                 VALUES (?, ?, ?, ?, ?)`,
+                VALUES (?, ?, ?, ?, ?)`,
                 [safeTitle, `${safeTitle}.mp3`, year, artist, cover]
             );
 
@@ -100,6 +100,18 @@ app.post("/add-title", async (req, res) => {
             res.status(500).send("Database insert failed");
         }
     });
+});
+
+app.get("/edit-title", async (req, res) => {
+
+    let id = req.query.id;
+
+    const [title] = await pool.query("SELECT * FROM titles WHERE id = ?", [id]);
+
+    const [artistes] = await pool.query("select id, nom from artistes;");
+    const [covers] = await pool.query("select id, url from covers;");
+
+    res.render("edit-title", { title: title[0], artistes, covers });
 });
 
 
@@ -140,11 +152,10 @@ function broadcastTrack() {
 console.log('Serveur WebSocket démarré sur ws://localhost:8080');
 
 async function main() {
+    console.log('FUNCTION main');
     await getAllTitles();
     newTrack();
 }
-
-
 
 async function newTrack() {
 
@@ -152,16 +163,20 @@ async function newTrack() {
 
     let x = Math.floor(Math.random() * allTitles.length);
     let track = allTitles[x];
+    console.log(path.join(musicFolder, track.url));
     let duration = Math.floor((await parseFile(path.join(musicFolder, track.url))).format.duration);
+    let lineColor = await getAverageColor(path.join(coversFolder, track.cover));
 
     currentTrack.trackInfo = track;
     currentTrack.duration = duration;
+    currentTrack.lineColor = lineColor;
 
     playTack();
 }
 
 async function playTack() {
-    console.log(currentTrack);
+    // console.log(currentTrack);
+    console.log('FUNCTION playTack');
 
     pool.query("INSERT INTO history (fk_title) VALUES (?)", [currentTrack.trackInfo.id]);
     currentTrack.playedAt = nowMySQLms();
@@ -175,13 +190,13 @@ async function playTack() {
                 newTrack();
                 clearInterval(interval);
             } else {
-                // console.log("Music is playing...");
-                // console.log("Title: " + currentTrack.trackInfo.titre);
-                // console.log("Time left: " + (currentTrack.duration - currentTimeTrack) + " / " + currentTrack.duration);
-                // let timeMinSec = Math.floor((currentTrack.duration) / 60) + ":" + (currentTrack.duration) % 60;
-                // console.log("Current time: " + currentTimeTrack + "/" + timeMinSec);
-                // console.log("Precise time: " + (new Date(nowMySQLms()) - new Date(currentTrack.playedAt)));
-                // console.log("Played at: " + currentTrack.playedAt);
+                console.log("Music is playing...");
+                console.log("Title: " + currentTrack.trackInfo.titre);
+                console.log("Time left: " + (currentTrack.duration - currentTimeTrack) + " / " + currentTrack.duration);
+                let timeMinSec = Math.floor((currentTrack.duration) / 60) + ":" + (currentTrack.duration) % 60;
+                console.log("Current time: " + currentTimeTrack + "/" + timeMinSec);
+                console.log("Precise time: " + (new Date(nowMySQLms()) - new Date(currentTrack.playedAt)));
+                console.log("Played at: " + currentTrack.playedAt);
             }
 
         },
@@ -191,7 +206,7 @@ async function playTack() {
 
 async function getAllTitles() {
     try {
-        const [rows] = await pool.query("select titles.id, titles.titre, titles.url, titles.annee, artistes.nom as artiste, covers.url as cover from titles join artistes on artistes.id = fk_artiste join covers on covers.id = fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);");
+        const [rows] = await pool.query("SELECT titles.id, COALESCE(titles.titre,'Unknown') AS titre,  COALESCE(titles.url,'') AS url,  COALESCE(titles.annee,'0000') AS annee,  COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover  FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste  LEFT JOIN covers ON covers.id = titles.fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);");
         allTitles = rows;
     } catch (err) {
         console.error("Erreur lors de la requête MySQL:", err);
@@ -209,4 +224,42 @@ function nowMySQLms() {
         .toISOString()
         .replace('T', ' ')
         .replace(/\.\d{3}Z$/, m => m.slice(0, -1));   // garde .SSS et enlève Z
+}
+
+export async function getAverageColor(imagePath) {
+    const { data, info } = await sharp(imagePath)
+        .resize(50, 50)
+        .removeAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+    let rTotal = 0;
+    let gTotal = 0;
+    let bTotal = 0;
+    let count = 0;
+
+    for (let i = 0; i < data.length; i += info.channels) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        // Optionnel : ignorer les pixels très sombres ou très clairs
+        if (r + g + b < 30 || r + g + b > 740) continue;
+
+        rTotal += r;
+        gTotal += g;
+        bTotal += b;
+        count++;
+    }
+
+    const r = Math.round(rTotal / count);
+    const g = Math.round(gTotal / count);
+    const b = Math.round(bTotal / count);
+
+    return (
+        "#" +
+        [r, g, b]
+            .map(v => v.toString(16).padStart(2, "0"))
+            .join("")
+    );
 }

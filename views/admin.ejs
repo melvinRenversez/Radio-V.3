@@ -270,6 +270,7 @@
         border: 1px solid transparent;
         position: relative;
         overflow: hidden;
+        text-decoration: none;
     }
 
     .card::before {
@@ -315,35 +316,68 @@
         transform: scale(1.05);
     }
 
-    /* Play overlay */
-    .play-overlay {
+    /* Boutons d'action de la carte */
+    .card-actions {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 48px;
-        height: 48px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
+        display: flex;
+        gap: 12px;
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .card-image-wrapper:hover .card-actions {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    .card-action-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        background: rgba(10, 10, 10, 0.8);
+        position: relative;
     }
 
-    .card:hover .play-overlay {
-        opacity: 1;
+    .card-action-btn svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+        position: relative;
+        z-index: 1;
+        stroke: #fff;
     }
 
-    .play-overlay::before {
-        content: '';
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 8px 0 8px 14px;
-        border-color: transparent transparent transparent #0a0a0a;
-        margin-left: 3px;
+    .edit-btn:hover {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .edit-btn:hover svg {
+        stroke: #0a0a0a;
+    }
+
+    .delete-btn:hover {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .delete-btn:hover svg {
+        stroke: #0a0a0a;
     }
 
     /* Info de la carte */
@@ -434,6 +468,22 @@
         .stats {
             flex-wrap: wrap;
         }
+
+        /* Sur mobile, afficher toujours les boutons d'action */
+        .card-actions {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+
+        .card-action-btn {
+            width: 40px;
+            height: 40px;
+        }
+
+        .card-action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
     }
 </style>
 
@@ -505,15 +555,30 @@
         <!-- Grid des cartes -->
         <div class="grid-card" id="gridContainer">
             <% allTitles.forEach(t => { %>
-                <div class="card" data-title="<%= t.titre.toLowerCase() %>" data-artist="<%= t.artiste.toLowerCase() %>" data-year="<%= t.annee %>">
+                <a href="/show-title/<%= t.id %>" class="card" data-title="<%= t.titre.toLowerCase() %>" data-artist="<%= t.artiste.toLowerCase() %>" data-year="<%= t.annee %>" data-id="<%= t.id %>">
                     <div class="card-image-wrapper">
                         <img src="../Covers/<%= t.cover %>" alt="<%= t.titre %>">
-                        <div class="play-overlay"></div>
+                        <div class="card-actions">
+                            <button class="card-action-btn edit-btn" onclick="editTrack(event, '<%= t.id %>')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="card-action-btn delete-btn" onclick="deleteTrack(event, '<%= t.id %>', '<%= t.titre %>')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <span class="card-title"><%= t.titre %></span>
                     <span class="card-artist"><%= t.artiste  %></span>
                     <span class="card-year"><%= t.annee %></span>
-                </div>
+                </a>
             <% }) %>
         </div>
 
@@ -545,6 +610,75 @@
         const showingTracksEl = document.getElementById('showingTracks');
         const filterBtns = document.querySelectorAll('.filter-btn');
         const clearFiltersBtn = document.getElementById('clearFilters');
+
+        // ============================================
+        // FONCTIONS D'ACTION SUR LES CARTES
+        // ============================================
+
+        // Fonction pour éditer un titre
+        function editTrack(event, trackId) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Rediriger vers la page d'édition
+            window.location.href = `/edit-title?id=${trackId}`;
+            
+            // OU ouvrir un modal d'édition
+            // openEditModal(trackId);
+        }
+
+        // Fonction pour supprimer un titre
+        function deleteTrack(event, trackId, trackTitle) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Demander confirmation
+            if (confirm(`Are you sure you want to delete "${trackTitle}"?`)) {
+                // Envoyer la requête de suppression
+                fetch(`/delete-title/${trackId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Supprimer la carte du DOM
+                        const card = document.querySelector(`[data-id="${trackId}"]`);
+                        if (card) {
+                            card.style.animation = 'fadeOut 0.3s ease';
+                            setTimeout(() => {
+                                card.remove();
+                                // Mettre à jour les données
+                                updateDataAfterDelete(trackId);
+                            }, 300);
+                        }
+                    } else {
+                        alert('Error deleting track. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting track. Please try again.');
+                });
+            }
+        }
+
+        // Mettre à jour les données après suppression
+        function updateDataAfterDelete(trackId) {
+            allTitles = allTitles.filter(t => t.id !== trackId);
+            filteredTitles = filteredTitles.filter(t => t.id !== trackId);
+            
+            // Mettre à jour les stats
+            totalTracksEl.textContent = allTitles.length;
+            showingTracksEl.textContent = filteredTitles.length;
+            
+            // Afficher l'état vide si nécessaire
+            if (allTitles.length === 0) {
+                gridContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+            }
+        }
 
         // ============================================
         // FONCTIONS
@@ -658,18 +792,15 @@
 
         // Action buttons
         document.getElementById('addTitleBtn').addEventListener('click', () => {
-            // Rediriger vers la page d'ajout de titre ou ouvrir un modal
-            window.location.href = '/add-title'; // À adapter selon votre routing
+            window.location.href = '/add-title';
         });
 
         document.getElementById('addArtistBtn').addEventListener('click', () => {
-            // Rediriger vers la page d'ajout d'artiste
-            window.location.href = '/add-artist'; // À adapter selon votre routing
+            window.location.href = '/add-artist';
         });
 
         document.getElementById('addCoverBtn').addEventListener('click', () => {
-            // Rediriger vers la page d'ajout de cover
-            window.location.href = '/add-cover'; // À adapter selon votre routing
+            window.location.href = '/add-cover';
         });
 
         // ============================================
@@ -681,6 +812,7 @@
         
         // Construire le tableau allTitles à partir des cartes DOM
         allTitles = allCards.map(card => ({
+            id: card.getAttribute('data-id'),
             titre: card.querySelector('.card-title').textContent.trim(),
             artiste: card.querySelector('.card-artist').textContent.trim(),
             annee: card.querySelector('.card-year').textContent.trim(),
@@ -693,6 +825,25 @@
         // Mettre à jour les stats initiales
         totalTracksEl.textContent = allTitles.length;
         showingTracksEl.textContent = allTitles.length;
+
+        // ============================================
+        // ANIMATION CSS POUR LA SUPPRESSION
+        // ============================================
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                to {
+                    opacity: 0;
+                    transform: scale(0.8);
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
         // ============================================
         // SYSTÈME DE PARTICULES CANVAS
@@ -741,23 +892,23 @@
         }
         
         const particles = [];
-            var particleCount;
+        var particleCount;
 
-    if (window.innerWidth < 400) {
-        particleCount = 50;
-    }else if (window.innerWidth < 600) {
-        particleCount = 100;
-    }else if (window.innerWidth < 900) {
-        particleCount = 150;
-    }else if (window.innerWidth < 1200) {
-        particleCount = 250;
-    }else if (window.innerWidth < 1600) {
-        particleCount = 350;
-    }else if (window.innerWidth < 2000) {
-        particleCount = 550;
-    }else {
-        particleCount = 700;
-    }
+        if (window.innerWidth < 400) {
+            particleCount = 50;
+        } else if (window.innerWidth < 600) {
+            particleCount = 100;
+        } else if (window.innerWidth < 900) {
+            particleCount = 150;
+        } else if (window.innerWidth < 1200) {
+            particleCount = 250;
+        } else if (window.innerWidth < 1600) {
+            particleCount = 350;
+        } else if (window.innerWidth < 2000) {
+            particleCount = 550;
+        } else {
+            particleCount = 700;
+        }
         
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle());
