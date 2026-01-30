@@ -1,14 +1,1977 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Document</title>
+   <title>Edit Title - RadioMel</title>
 </head>
+
+<style>
+   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+   * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+   }
+
+   body {
+      min-height: 100vh;
+      background: #0a0a0a;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      position: relative;
+      overflow-x: hidden;
+      padding: 40px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+   }
+
+   /* Canvas pour les particules */
+   #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+   }
+
+   /* Container principal */
+   .form-container {
+      max-width: 600px;
+      width: 100%;
+      background: #12121255;
+      backdrop-filter: blur(10px);
+      border-radius: 32px;
+      padding: 48px;
+      position: relative;
+      z-index: 1;
+      border: 1px solid #2a2a2a;
+   }
+
+   /* Header */
+   .form-header {
+      text-align: center;
+      margin-bottom: 40px;
+   }
+
+   .form-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+   }
+
+   .form-header p {
+      font-size: 15px;
+      font-weight: 400;
+      color: #666;
+   }
+
+   /* Track ID Badge */
+   .track-id-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 20px;
+      color: #666;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+   }
+
+   .track-id-badge span {
+      color: #fff;
+      margin-left: 4px;
+   }
+
+   /* Back button */
+   .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #666;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      margin-bottom: 32px;
+      text-decoration: none;
+   }
+
+   .back-btn:hover {
+      border-color: #fff;
+      color: #fff;
+      transform: translateX(-4px);
+   }
+
+   .back-icon {
+      width: 16px;
+      height: 16px;
+   }
+
+   /* Form */
+   .form-group {
+      margin-bottom: 28px;
+   }
+
+   .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+   }
+
+   .form-input {
+      width: 100%;
+      padding: 16px 20px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+   }
+
+   .form-input:focus {
+      outline: none;
+      border-color: #fff;
+      background: #1f1f1f;
+   }
+
+   .form-input::placeholder {
+      color: #666;
+   }
+
+   /* Readonly field */
+   .form-input:read-only {
+      background: #0f0f0f;
+      cursor: not-allowed;
+      opacity: 0.6;
+   }
+
+   /* URL Type Selector */
+   .url-type-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+   }
+
+   .url-type-btn {
+      flex: 1;
+      padding: 12px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #666;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+   }
+
+   .url-type-btn:hover {
+      border-color: #fff;
+      color: #fff;
+   }
+
+   .url-type-btn.active {
+      background: #fff;
+      color: #0a0a0a;
+      border-color: #fff;
+   }
+
+   .url-type-btn svg {
+      width: 18px;
+      height: 18px;
+   }
+
+   /* MP3 File Selector */
+   .mp3-file-selector {
+      position: relative;
+      width: 100%;
+   }
+
+   .mp3-select-trigger {
+      width: 100%;
+      padding: 16px 20px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+   }
+
+   .mp3-select-trigger:hover {
+      border-color: #fff;
+      background: #1f1f1f;
+   }
+
+   .mp3-select-trigger.active {
+      border-color: #fff;
+      background: #1f1f1f;
+   }
+
+   .mp3-select-placeholder {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      color: #666;
+      overflow: hidden;
+   }
+
+   .mp3-select-placeholder.has-value {
+      color: #fff;
+   }
+
+   .mp3-select-placeholder svg {
+      width: 24px;
+      height: 24px;
+      color: #666;
+      flex-shrink: 0;
+   }
+
+   .mp3-select-placeholder span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+   }
+
+   .mp3-select-arrow {
+      width: 20px;
+      height: 20px;
+      color: #666;
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+   }
+
+   .mp3-select-trigger.active .mp3-select-arrow {
+      transform: rotate(180deg);
+   }
+
+   .mp3-select-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 12px;
+      max-height: 400px;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+   }
+
+   .mp3-select-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+   }
+
+   .mp3-select-search {
+      margin-bottom: 12px;
+   }
+
+   .mp3-search-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+   }
+
+   .mp3-search-input:focus {
+      outline: none;
+      border-color: #666;
+   }
+
+   .mp3-search-input::placeholder {
+      color: #666;
+   }
+
+   .mp3-select-options {
+      max-height: 300px;
+      overflow-y: auto;
+      overflow-x: hidden;
+   }
+
+   .mp3-select-options::-webkit-scrollbar {
+      width: 6px;
+   }
+
+   .mp3-select-options::-webkit-scrollbar-track {
+      background: #0a0a0a;
+      border-radius: 3px;
+   }
+
+   .mp3-select-options::-webkit-scrollbar-thumb {
+      background: #2a2a2a;
+      border-radius: 3px;
+   }
+
+   .mp3-select-options::-webkit-scrollbar-thumb:hover {
+      background: #444;
+   }
+
+   .mp3-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+   }
+
+   .mp3-option:hover {
+      background: #2a2a2a;
+      border-color: #444;
+   }
+
+   .mp3-option.selected {
+      background: #2a2a2a;
+      border-color: #fff;
+   }
+
+   .mp3-option-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+   }
+
+   .mp3-option-icon svg {
+      width: 20px;
+      height: 20px;
+      color: #666;
+   }
+
+   .mp3-option.selected .mp3-option-icon {
+      border-color: #fff;
+   }
+
+   .mp3-option.selected .mp3-option-icon svg {
+      color: #fff;
+   }
+
+   .mp3-option-text {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 400;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+   }
+
+   .mp3-option.hidden {
+      display: none;
+   }
+
+   /* Custom Artist Select with Search */
+   .custom-artist-select {
+      position: relative;
+      width: 100%;
+   }
+
+   .artist-select-trigger {
+      width: 100%;
+      padding: 16px 20px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+   }
+
+   .artist-select-trigger:hover {
+      border-color: #fff;
+      background: #1f1f1f;
+   }
+
+   .artist-select-trigger.active {
+      border-color: #fff;
+      background: #1f1f1f;
+   }
+
+   .artist-select-placeholder {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      color: #666;
+   }
+
+   .artist-select-placeholder.has-value {
+      color: #fff;
+   }
+
+   .artist-select-placeholder svg {
+      width: 24px;
+      height: 24px;
+      color: #666;
+   }
+
+   .artist-select-arrow {
+      width: 20px;
+      height: 20px;
+      color: #666;
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+   }
+
+   .artist-select-trigger.active .artist-select-arrow {
+      transform: rotate(180deg);
+   }
+
+   .artist-select-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 12px;
+      max-height: 400px;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+   }
+
+   .artist-select-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+   }
+
+   .artist-select-search {
+      margin-bottom: 12px;
+   }
+
+   .artist-search-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+   }
+
+   .artist-search-input:focus {
+      outline: none;
+      border-color: #666;
+   }
+
+   .artist-search-input::placeholder {
+      color: #666;
+   }
+
+   .artist-select-options {
+      max-height: 300px;
+      overflow-y: auto;
+      overflow-x: hidden;
+   }
+
+   .artist-select-options::-webkit-scrollbar {
+      width: 6px;
+   }
+
+   .artist-select-options::-webkit-scrollbar-track {
+      background: #0a0a0a;
+      border-radius: 3px;
+   }
+
+   .artist-select-options::-webkit-scrollbar-thumb {
+      background: #2a2a2a;
+      border-radius: 3px;
+   }
+
+   .artist-select-options::-webkit-scrollbar-thumb:hover {
+      background: #444;
+   }
+
+   .artist-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+   }
+
+   .artist-option:hover {
+      background: #2a2a2a;
+      border-color: #444;
+   }
+
+   .artist-option.selected {
+      background: #2a2a2a;
+      border-color: #fff;
+   }
+
+   .artist-option-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+   }
+
+   .artist-option-icon svg {
+      width: 20px;
+      height: 20px;
+      color: #666;
+   }
+
+   .artist-option.selected .artist-option-icon {
+      border-color: #fff;
+   }
+
+   .artist-option.selected .artist-option-icon svg {
+      color: #fff;
+   }
+
+   .artist-option-text {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 400;
+      flex: 1;
+   }
+
+   .artist-option.hidden {
+      display: none;
+   }
+
+   /* Custom Cover Select with Images */
+   .custom-cover-select {
+      position: relative;
+      width: 100%;
+   }
+
+   .cover-select-trigger {
+      width: 100%;
+      padding: 16px 20px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+   }
+
+   .cover-select-trigger:hover {
+      border-color: #fff;
+      background: #1f1f1f;
+   }
+
+   .cover-select-trigger.active {
+      border-color: #fff;
+      background: #1f1f1f;
+   }
+
+   .cover-select-placeholder {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      color: #666;
+   }
+
+   .cover-select-placeholder.has-value {
+      color: #fff;
+   }
+
+   .cover-select-placeholder img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #2a2a2a;
+   }
+
+   .cover-select-arrow {
+      width: 20px;
+      height: 20px;
+      color: #666;
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+   }
+
+   .cover-select-trigger.active .cover-select-arrow {
+      transform: rotate(180deg);
+   }
+
+   .cover-select-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 12px;
+      max-height: 400px;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+   }
+
+   .cover-select-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+   }
+
+   .cover-select-search {
+      margin-bottom: 12px;
+   }
+
+   .cover-search-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+   }
+
+   .cover-search-input:focus {
+      outline: none;
+      border-color: #666;
+   }
+
+   .cover-search-input::placeholder {
+      color: #666;
+   }
+
+   .cover-select-options {
+      max-height: 300px;
+      overflow-y: auto;
+      overflow-x: hidden;
+   }
+
+   .cover-select-options::-webkit-scrollbar {
+      width: 6px;
+   }
+
+   .cover-select-options::-webkit-scrollbar-track {
+      background: #0a0a0a;
+      border-radius: 3px;
+   }
+
+   .cover-select-options::-webkit-scrollbar-thumb {
+      background: #2a2a2a;
+      border-radius: 3px;
+   }
+
+   .cover-select-options::-webkit-scrollbar-thumb:hover {
+      background: #444;
+   }
+
+   .cover-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+   }
+
+   .cover-option:hover {
+      background: #2a2a2a;
+      border-color: #444;
+   }
+
+   .cover-option.selected {
+      background: #2a2a2a;
+      border-color: #fff;
+   }
+
+   .cover-option-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid #2a2a2a;
+      flex-shrink: 0;
+   }
+
+   .cover-option-text {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 400;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+   }
+
+   .cover-option.hidden {
+      display: none;
+   }
+
+   /* Action Buttons */
+   .form-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+   }
+
+   .submit-btn {
+      flex: 1;
+      padding: 18px;
+      background: #fff;
+      border: none;
+      border-radius: 16px;
+      color: #0a0a0a;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+   }
+
+   .submit-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+   }
+
+   .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+   }
+
+   .submit-btn:hover::before {
+      opacity: 1;
+   }
+
+   .submit-btn:active {
+      transform: translateY(0);
+   }
+
+   .delete-btn {
+      padding: 18px 32px;
+      background: transparent;
+      border: 1px solid #ff4444;
+      border-radius: 16px;
+      color: #ff4444;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+   }
+
+   .delete-btn:hover {
+      background: #ff4444;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 68, 68, 0.3);
+   }
+
+   .delete-btn:active {
+      transform: translateY(0);
+   }
+
+   /* Required indicator */
+   .required {
+      color: #ff4444;
+      margin-left: 4px;
+   }
+
+   /* Helper text */
+   .helper-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      font-weight: 400;
+   }
+
+   /* Duration display */
+   .duration-display {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #666;
+      font-size: 14px;
+      margin-top: 8px;
+   }
+
+   .duration-display svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 8px;
+   }
+
+   .duration-display span {
+      color: #fff;
+      font-weight: 600;
+   }
+
+   /* Responsive */
+   @media (max-width: 768px) {
+      .form-container {
+         padding: 32px 24px;
+      }
+
+      .form-header h1 {
+         font-size: 28px;
+      }
+
+      .form-actions {
+         flex-direction: column;
+      }
+
+      .delete-btn {
+         width: 100%;
+      }
+   }
+
+   /* Loading Overlay */
+   .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 10, 10, 0.95);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+   }
+
+   .loading-overlay.active {
+      opacity: 1;
+      visibility: visible;
+   }
+
+   .loading-content {
+      text-align: center;
+      max-width: 400px;
+      padding: 48px;
+      background: #12121255;
+      backdrop-filter: blur(10px);
+      border-radius: 32px;
+      border: 1px solid #2a2a2a;
+   }
+
+   .loading-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      position: relative;
+   }
+
+   .loading-icon svg {
+      width: 100%;
+      height: 100%;
+      animation: rotate 2s linear infinite;
+   }
+
+   @keyframes rotate {
+      from {
+         transform: rotate(0deg);
+      }
+
+      to {
+         transform: rotate(360deg);
+      }
+   }
+
+   .loading-icon svg circle {
+      fill: none;
+      stroke: #fff;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 200;
+      stroke-dashoffset: 0;
+      animation: dash 1.5s ease-in-out infinite;
+   }
+
+   @keyframes dash {
+      0% {
+         stroke-dashoffset: 200;
+      }
+
+      50% {
+         stroke-dashoffset: 50;
+      }
+
+      100% {
+         stroke-dashoffset: 200;
+      }
+   }
+
+   .loading-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+   }
+
+   .loading-text {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 32px;
+   }
+
+   .loading-bar-wrapper {
+      width: 100%;
+      height: 4px;
+      background: #1a1a1a;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+   }
+
+   .loading-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #fff 0%, #666 50%, #fff 100%);
+      background-size: 200% 100%;
+      border-radius: 2px;
+      animation: loading 1.5s ease-in-out infinite;
+      width: 100%;
+   }
+
+   @keyframes loading {
+      0% {
+         background-position: 200% 0;
+      }
+
+      100% {
+         background-position: -200% 0;
+      }
+   }
+
+   .loading-dots {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+   }
+
+   .loading-dot {
+      width: 8px;
+      height: 8px;
+      background: #666;
+      border-radius: 50%;
+      animation: dotPulse 1.4s ease-in-out infinite;
+   }
+
+   .loading-dot:nth-child(1) {
+      animation-delay: 0s;
+   }
+
+   .loading-dot:nth-child(2) {
+      animation-delay: 0.2s;
+   }
+
+   .loading-dot:nth-child(3) {
+      animation-delay: 0.4s;
+   }
+
+   @keyframes dotPulse {
+
+      0%,
+      100% {
+         background: #666;
+         transform: scale(1);
+      }
+
+      50% {
+         background: #fff;
+         transform: scale(1.2);
+      }
+   }
+
+   /* Delete Confirmation Modal */
+   .delete-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 10, 10, 0.95);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+   }
+
+   .delete-modal.active {
+      opacity: 1;
+      visibility: visible;
+   }
+
+   .delete-modal-content {
+      max-width: 450px;
+      width: 90%;
+      background: #12121255;
+      backdrop-filter: blur(10px);
+      border-radius: 32px;
+      padding: 48px;
+      border: 1px solid #2a2a2a;
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+   }
+
+   .delete-modal.active .delete-modal-content {
+      transform: scale(1);
+   }
+
+   .delete-modal-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: rgba(255, 68, 68, 0.1);
+      border: 2px solid #ff4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+   }
+
+   .delete-modal-icon svg {
+      width: 40px;
+      height: 40px;
+      color: #ff4444;
+   }
+
+   .delete-modal-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+   }
+
+   .delete-modal-text {
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 32px;
+      line-height: 1.6;
+   }
+
+   .delete-modal-actions {
+      display: flex;
+      gap: 12px;
+   }
+
+   .modal-btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+   }
+
+   .modal-btn-cancel {
+      background: transparent;
+      border: 1px solid #2a2a2a;
+      color: #666;
+   }
+
+   .modal-btn-cancel:hover {
+      border-color: #fff;
+      color: #fff;
+   }
+
+   .modal-btn-confirm {
+      background: #ff4444;
+      color: #fff;
+   }
+
+   .modal-btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 68, 68, 0.4);
+   }
+
+   .hidden {
+      display: none !important;
+   }
+</style>
+
 <body>
+   <!-- Canvas pour les particules -->
+   <canvas id="particleCanvas"></canvas>
 
-   <pre><%= JSON.stringify(title, null, 2) %></pre>
+   <!-- Loading Overlay -->
+   <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-content">
+         <div class="loading-icon">
+            <svg viewBox="0 0 100 100">
+               <circle cx="50" cy="50" r="45"></circle>
+            </svg>
+         </div>
+         <h2 class="loading-title">Updating Track</h2>
+         <p class="loading-text">Please wait while we save your changes...</p>
+         <div class="loading-bar-wrapper">
+            <div class="loading-bar"></div>
+         </div>
+         <div class="loading-dots">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+         </div>
+      </div>
+   </div>
 
+   <!-- Delete Confirmation Modal -->
+   <div class="delete-modal" id="deleteModal">
+      <div class="delete-modal-content">
+         <div class="delete-modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+               <polyline points="3 6 5 6 21 6"></polyline>
+               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+               <line x1="10" y1="11" x2="10" y2="17"></line>
+               <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+         </div>
+         <h2 class="delete-modal-title">Delete Track</h2>
+         <p class="delete-modal-text">
+            Are you sure you want to delete "<strong><%= title.titre %></strong>"?<br>
+            This action cannot be undone.
+         </p>
+         <div class="delete-modal-actions">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="modal-btn modal-btn-confirm" onclick="confirmDelete()">Delete</button>
+         </div>
+      </div>
+   </div>
 
+   <div class="form-container">
+      <!-- Back button -->
+      <a href="/admin" class="back-btn">
+         <svg class="back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+         </svg>
+         Back to Library
+      </a>
+
+      <!-- Header -->
+      <div class="form-header">
+         <div class="track-id-badge">TRACK ID:<span>#<%= title.id %></span></div>
+         <h1>Edit Track</h1>
+         <p>Update the details of "<%= title.titre %>"</p>
+      </div>
+
+      <!-- Form -->
+      <form action="/edit-title/<%= title.id %>" method="POST" id="editTitleForm">
+         <!-- Title -->
+         <div class="form-group">
+            <label class="form-label">
+               Title <span class="required">*</span>
+            </label>
+            <input type="text" name="title" class="form-input" placeholder="Enter track title"
+               value="<%= title.titre %>" required>
+            <p class="helper-text">The name of the track</p>
+         </div>
+
+         <!-- URL -->
+         <div class="form-group">
+            <label class="form-label">
+               Audio Source <span class="required">*</span>
+            </label>
+
+            <!-- URL Type Selector -->
+            <div class="url-type-selector">
+               <button type="button" class="url-type-btn" id="btnFileType">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                     <polyline points="13 2 13 9 20 9"></polyline>
+                  </svg>
+                  Select File
+               </button>
+               <button type="button" class="url-type-btn" id="btnUrlType">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                  Enter URL
+               </button>
+            </div>
+
+            <!-- File Selector -->
+            <div id="fileSelector">
+               <input type="hidden" name="url" id="urlInput" value="<%= title.url %>" required>
+
+               <div class="mp3-file-selector" id="customMp3Select">
+                  <div class="mp3-select-trigger" id="mp3SelectTrigger">
+                     <div class="mp3-select-placeholder has-value">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                           <path d="M9 18V5l12-2v13"></path>
+                           <circle cx="6" cy="18" r="3"></circle>
+                           <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                        <span id="selectedMp3Name"><%= title.url %></span>
+                     </div>
+                     <svg class="mp3-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                     </svg>
+                  </div>
+
+                  <div class="mp3-select-dropdown" id="mp3SelectDropdown">
+                     <div class="mp3-select-search">
+                        <input type="text" id="mp3SearchInput" class="mp3-search-input"
+                           placeholder="Search MP3 files...">
+                     </div>
+                     <div class="mp3-select-options" id="mp3SelectOptions">
+                        <!-- MP3 files will be loaded here dynamically -->
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- URL Input -->
+            <div id="urlInputField" class="hidden">
+               <input type="text" name="customUrl" id="customUrlInput" class="form-input"
+                  placeholder="https://example.com/audio.mp3 or filename.mp3" value="<%= title.url %>">
+            </div>
+
+            <p class="helper-text">Choose an existing MP3 file or enter a complete URL</p>
+         </div>
+
+         <!-- Year -->
+         <div class="form-group">
+            <label class="form-label">Year</label>
+            <input type="text" name="year" class="form-input" placeholder="2025" pattern="[0-9]{4}" maxlength="4"
+               value="<%= title.année || '' %>">
+            <p class="helper-text">Release year (optional)</p>
+         </div>
+
+         <!-- Duration (readonly) -->
+         <div class="form-group">
+            <label class="form-label">Duration</label>
+            <input type="text" class="form-input"
+               value="<%= Math.floor(title.duree / 60) %>:<%= (title.duree % 60).toString().padStart(2, '0') %>"
+               readonly>
+            <div class="duration-display">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+               </svg>
+               <span><%= title.duree %> seconds</span>
+            </div>
+         </div>
+
+         <!-- Artist Select -->
+         <div class="form-group">
+            <label class="form-label">
+               Artist <span class="required">*</span>
+            </label>
+
+            <input type="hidden" name="artist" id="artistInput" value="<%= title.fk_artiste %>" required>
+
+            <div class="custom-artist-select" id="customArtistSelect">
+               <div class="artist-select-trigger" id="artistSelectTrigger">
+                  <div class="artist-select-placeholder has-value">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                     </svg>
+                     <span id="selectedArtistName">Loading...</span>
+                  </div>
+                  <svg class="artist-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2">
+                     <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+               </div>
+
+               <div class="artist-select-dropdown" id="artistSelectDropdown">
+                  <div class="artist-select-search">
+                     <input type="text" id="artistSearchInput" class="artist-search-input"
+                        placeholder="Search artists...">
+                  </div>
+                  <div class="artist-select-options" id="artistSelectOptions">
+                     <% artistes.forEach(a => { %>
+                        <div class="artist-option <%= a.id == title.fk_artiste ? 'selected' : '' %>"
+                           data-value="<%= a.id %>">
+                           <div class="artist-option-icon">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                 <circle cx="12" cy="7" r="4"></circle>
+                              </svg>
+                           </div>
+                           <span class="artist-option-text"><%= a.nom %></span>
+                        </div>
+                     <% }) %>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <!-- Cover Select -->
+         <div class="form-group">
+            <label class="form-label">
+               Cover <span class="required">*</span>
+            </label>
+
+            <input type="hidden" name="cover" id="coverInput" value="<%= title.fk_cover %>" required>
+
+            <div class="custom-cover-select" id="customCoverSelect">
+               <div class="cover-select-trigger" id="coverSelectTrigger">
+                  <div class="cover-select-placeholder has-value">
+                     <img id="selectedCoverImg" src="" alt="">
+                     <span id="selectedCoverName">Loading...</span>
+                  </div>
+                  <svg class="cover-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2">
+                     <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+               </div>
+
+               <div class="cover-select-dropdown" id="coverSelectDropdown">
+                  <div class="cover-select-search">
+                     <input type="text" id="coverSearchInput" class="cover-search-input" placeholder="Search covers...">
+                  </div>
+                  <div class="cover-select-options" id="coverSelectOptions">
+                     <% covers.forEach(c => { %>
+                        <div class="cover-option <%= c.id == title.fk_cover ? 'selected' : '' %>"
+                           data-value="<%= c.id %>" data-url="../Covers/<%= c.url %>">
+                           <img src="../Covers/<%= c.url %>" alt="<%= c.url %>" class="cover-option-img">
+                           <span class="cover-option-text"><%= c.url %></span>
+                        </div>
+                     <% }) %>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <!-- Action Buttons -->
+         <div class="form-actions">
+            <button type="submit" class="submit-btn">Save Changes</button>
+            <button type="button" class="delete-btn" onclick="openDeleteModal()">Delete</button>
+         </div>
+      </form>
+   </div>
+
+   <script>
+      // ============================================
+      // MP3 FILES DATA FROM SERVER
+      // ============================================
+      const mp3Files = <%- JSON.stringify(mp3s) %>;
+
+      // ============================================
+      // INITIALIZE ON LOAD
+      // ============================================
+      window.addEventListener('DOMContentLoaded', function () {
+         // Populate MP3 options
+         populateMp3Options();
+
+         // Initialize URL type based on current value
+         initializeUrlType();
+
+         // Set selected artist name
+         const selectedArtist = document.querySelector('.artist-option.selected');
+         if (selectedArtist) {
+            document.getElementById('selectedArtistName').textContent =
+               selectedArtist.querySelector('.artist-option-text').textContent;
+         }
+
+         // Set selected cover image and name
+         const selectedCover = document.querySelector('.cover-option.selected');
+         if (selectedCover) {
+            const coverUrl = selectedCover.dataset.url;
+            const coverName = selectedCover.querySelector('.cover-option-text').textContent;
+            document.getElementById('selectedCoverImg').src = coverUrl;
+            document.getElementById('selectedCoverName').textContent = coverName;
+         }
+      });
+
+      // ============================================
+      // POPULATE MP3 OPTIONS
+      // ============================================
+      function populateMp3Options() {
+         const mp3SelectOptions = document.getElementById('mp3SelectOptions');
+         const currentUrl = document.getElementById('urlInput').value;
+
+         mp3Files.forEach(file => {
+            const option = document.createElement('div');
+            option.className = 'mp3-option';
+            option.dataset.value = file;
+
+            if (file === currentUrl) {
+               option.classList.add('selected');
+            }
+
+            option.innerHTML = `
+               <div class="mp3-option-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M9 18V5l12-2v13"></path>
+                     <circle cx="6" cy="18" r="3"></circle>
+                     <circle cx="18" cy="16" r="3"></circle>
+                  </svg>
+               </div>
+               <span class="mp3-option-text">${file}</span>
+            `;
+
+            mp3SelectOptions.appendChild(option);
+         });
+      }
+
+      // ============================================
+      // INITIALIZE URL TYPE
+      // ============================================
+      function initializeUrlType() {
+         const currentUrl = document.getElementById('urlInput').value;
+         const isInMp3List = mp3Files.includes(currentUrl);
+
+         if (isInMp3List) {
+            // Activer le mode "Select File"
+            btnFileType.click();
+         } else {
+            // Activer le mode "Enter URL"
+            btnUrlType.click();
+         }
+      }
+
+      // ============================================
+      // URL TYPE TOGGLE
+      // ============================================
+      const btnFileType = document.getElementById('btnFileType');
+      const btnUrlType = document.getElementById('btnUrlType');
+      const fileSelector = document.getElementById('fileSelector');
+      const urlInputField = document.getElementById('urlInputField');
+      const urlInput = document.getElementById('urlInput');
+      const customUrlInput = document.getElementById('customUrlInput');
+
+      btnFileType.addEventListener('click', () => {
+         btnFileType.classList.add('active');
+         btnUrlType.classList.remove('active');
+         fileSelector.classList.remove('hidden');
+         urlInputField.classList.add('hidden');
+         urlInput.disabled = false;
+         customUrlInput.disabled = true;
+         urlInput.required = true;
+         customUrlInput.required = false;
+      });
+
+      btnUrlType.addEventListener('click', () => {
+         btnUrlType.classList.add('active');
+         btnFileType.classList.remove('active');
+         urlInputField.classList.remove('hidden');
+         fileSelector.classList.add('hidden');
+         customUrlInput.disabled = false;
+         urlInput.disabled = true;
+         customUrlInput.required = true;
+         urlInput.required = false;
+      });
+
+      // ============================================
+      // FORM SUBMISSION & LOADING OVERLAY
+      // ============================================
+      const editTitleForm = document.getElementById('editTitleForm');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+
+      editTitleForm.addEventListener('submit', function (e) {
+         // Update URL input based on selected type
+         if (!btnFileType.classList.contains('active')) {
+            urlInput.value = customUrlInput.value;
+         }
+
+         loadingOverlay.classList.add('active');
+      });
+
+      // ============================================
+      // DELETE MODAL
+      // ============================================
+      const deleteModal = document.getElementById('deleteModal');
+
+      function openDeleteModal() {
+         deleteModal.classList.add('active');
+      }
+
+      function closeDeleteModal() {
+         deleteModal.classList.remove('active');
+      }
+
+      function confirmDelete() {
+         const deleteForm = document.createElement('form');
+         deleteForm.method = 'POST';
+         deleteForm.action = '/delete-title/<%= title.id %>';
+         document.body.appendChild(deleteForm);
+
+         loadingOverlay.querySelector('.loading-title').textContent = 'Deleting Track';
+         loadingOverlay.querySelector('.loading-text').textContent = 'Please wait...';
+         loadingOverlay.classList.add('active');
+
+         deleteForm.submit();
+      }
+
+      deleteModal.addEventListener('click', function (e) {
+         if (e.target === deleteModal) {
+            closeDeleteModal();
+         }
+      });
+
+      document.addEventListener('keydown', function (e) {
+         if (e.key === 'Escape' && deleteModal.classList.contains('active')) {
+            closeDeleteModal();
+         }
+      });
+
+      // ============================================
+      // CUSTOM MP3 SELECT WITH SEARCH
+      // ============================================
+      const customMp3Select = document.getElementById('customMp3Select');
+      const mp3SelectTrigger = document.getElementById('mp3SelectTrigger');
+      const mp3SelectDropdown = document.getElementById('mp3SelectDropdown');
+      const mp3SearchInput = document.getElementById('mp3SearchInput');
+
+      mp3SelectTrigger.addEventListener('click', (e) => {
+         e.stopPropagation();
+         const isActive = mp3SelectDropdown.classList.contains('active');
+
+         if (isActive) {
+            closeMp3Dropdown();
+         } else {
+            openMp3Dropdown();
+         }
+      });
+
+      function openMp3Dropdown() {
+         mp3SelectDropdown.classList.add('active');
+         mp3SelectTrigger.classList.add('active');
+         mp3SearchInput.focus();
+      }
+
+      function closeMp3Dropdown() {
+         mp3SelectDropdown.classList.remove('active');
+         mp3SelectTrigger.classList.remove('active');
+         mp3SearchInput.value = '';
+         const mp3Options = document.querySelectorAll('.mp3-option');
+         mp3Options.forEach(opt => opt.classList.remove('hidden'));
+      }
+
+      document.addEventListener('click', (e) => {
+         if (!customMp3Select.contains(e.target)) {
+            closeMp3Dropdown();
+         }
+      });
+
+      // Handle MP3 option selection (using event delegation)
+      document.getElementById('mp3SelectOptions').addEventListener('click', (e) => {
+         const option = e.target.closest('.mp3-option');
+         if (!option) return;
+
+         const value = option.dataset.value;
+         urlInput.value = value;
+
+         const mp3Options = document.querySelectorAll('.mp3-option');
+         mp3Options.forEach(opt => opt.classList.remove('selected'));
+         option.classList.add('selected');
+
+         const placeholder = mp3SelectTrigger.querySelector('.mp3-select-placeholder');
+         placeholder.classList.add('has-value');
+         placeholder.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <path d="M9 18V5l12-2v13"></path>
+               <circle cx="6" cy="18" r="3"></circle>
+               <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+            <span>${value}</span>
+         `;
+
+         closeMp3Dropdown();
+      });
+
+      mp3SearchInput.addEventListener('input', (e) => {
+         const searchTerm = e.target.value.toLowerCase().trim();
+         const mp3Options = document.querySelectorAll('.mp3-option');
+
+         mp3Options.forEach(option => {
+            const text = option.querySelector('.mp3-option-text').textContent.toLowerCase();
+
+            if (text.includes(searchTerm)) {
+               option.classList.remove('hidden');
+            } else {
+               option.classList.add('hidden');
+            }
+         });
+      });
+
+      mp3SelectDropdown.addEventListener('click', (e) => {
+         e.stopPropagation();
+      });
+
+      // ============================================
+      // CUSTOM ARTIST SELECT WITH SEARCH
+      // ============================================
+      const customArtistSelect = document.getElementById('customArtistSelect');
+      const artistSelectTrigger = document.getElementById('artistSelectTrigger');
+      const artistSelectDropdown = document.getElementById('artistSelectDropdown');
+      const artistSearchInput = document.getElementById('artistSearchInput');
+      const artistInput = document.getElementById('artistInput');
+      const artistOptions = document.querySelectorAll('.artist-option');
+
+      artistSelectTrigger.addEventListener('click', (e) => {
+         e.stopPropagation();
+         const isActive = artistSelectDropdown.classList.contains('active');
+
+         if (coverSelectDropdown.classList.contains('active')) {
+            closeDropdown();
+         }
+
+         if (isActive) {
+            closeArtistDropdown();
+         } else {
+            openArtistDropdown();
+         }
+      });
+
+      function openArtistDropdown() {
+         artistSelectDropdown.classList.add('active');
+         artistSelectTrigger.classList.add('active');
+         artistSearchInput.focus();
+      }
+
+      function closeArtistDropdown() {
+         artistSelectDropdown.classList.remove('active');
+         artistSelectTrigger.classList.remove('active');
+         artistSearchInput.value = '';
+         artistOptions.forEach(opt => opt.classList.remove('hidden'));
+      }
+
+      document.addEventListener('click', (e) => {
+         if (!customArtistSelect.contains(e.target) && !customCoverSelect.contains(e.target)) {
+            closeArtistDropdown();
+         }
+      });
+
+      artistOptions.forEach(option => {
+         option.addEventListener('click', () => {
+            const value = option.dataset.value;
+            const text = option.querySelector('.artist-option-text').textContent;
+
+            artistInput.value = value;
+            artistOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            const placeholder = artistSelectTrigger.querySelector('.artist-select-placeholder');
+            placeholder.classList.add('has-value');
+            placeholder.innerHTML = `
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+               </svg>
+               <span>${text}</span>
+            `;
+
+            closeArtistDropdown();
+         });
+      });
+
+      artistSearchInput.addEventListener('input', (e) => {
+         const searchTerm = e.target.value.toLowerCase().trim();
+
+         artistOptions.forEach(option => {
+            const text = option.querySelector('.artist-option-text').textContent.toLowerCase();
+
+            if (text.includes(searchTerm)) {
+               option.classList.remove('hidden');
+            } else {
+               option.classList.add('hidden');
+            }
+         });
+      });
+
+      artistSelectDropdown.addEventListener('click', (e) => {
+         e.stopPropagation();
+      });
+
+      // ============================================
+      // CUSTOM COVER SELECT WITH IMAGES
+      // ============================================
+      const customCoverSelect = document.getElementById('customCoverSelect');
+      const coverSelectTrigger = document.getElementById('coverSelectTrigger');
+      const coverSelectDropdown = document.getElementById('coverSelectDropdown');
+      const coverSearchInput = document.getElementById('coverSearchInput');
+      const coverInput = document.getElementById('coverInput');
+      const coverOptions = document.querySelectorAll('.cover-option');
+
+      coverSelectTrigger.addEventListener('click', (e) => {
+         e.stopPropagation();
+         const isActive = coverSelectDropdown.classList.contains('active');
+
+         if (artistSelectDropdown.classList.contains('active')) {
+            closeArtistDropdown();
+         }
+
+         if (isActive) {
+            closeDropdown();
+         } else {
+            openDropdown();
+         }
+      });
+
+      function openDropdown() {
+         coverSelectDropdown.classList.add('active');
+         coverSelectTrigger.classList.add('active');
+         coverSearchInput.focus();
+      }
+
+      function closeDropdown() {
+         coverSelectDropdown.classList.remove('active');
+         coverSelectTrigger.classList.remove('active');
+         coverSearchInput.value = '';
+         coverOptions.forEach(opt => opt.classList.remove('hidden'));
+      }
+
+      document.addEventListener('click', (e) => {
+         if (!customCoverSelect.contains(e.target)) {
+            closeDropdown();
+         }
+      });
+
+      coverOptions.forEach(option => {
+         option.addEventListener('click', () => {
+            const value = option.dataset.value;
+            const url = option.dataset.url;
+            const text = option.querySelector('.cover-option-text').textContent;
+
+            coverInput.value = value;
+            coverOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            const placeholder = coverSelectTrigger.querySelector('.cover-select-placeholder');
+            placeholder.classList.add('has-value');
+            placeholder.innerHTML = `
+               <img src="${url}" alt="${text}">
+               <span>${text}</span>
+            `;
+
+            closeDropdown();
+         });
+      });
+
+      coverSearchInput.addEventListener('input', (e) => {
+         const searchTerm = e.target.value.toLowerCase().trim();
+
+         coverOptions.forEach(option => {
+            const text = option.querySelector('.cover-option-text').textContent.toLowerCase();
+
+            if (text.includes(searchTerm)) {
+               option.classList.remove('hidden');
+            } else {
+               option.classList.add('hidden');
+            }
+         });
+      });
+
+      coverSelectDropdown.addEventListener('click', (e) => {
+         e.stopPropagation();
+      });
+
+      // ============================================
+      // PARTICLE SYSTEM
+      // ============================================
+      const canvas = document.getElementById('particleCanvas');
+      const ctx = canvas.getContext('2d');
+
+      function resizeCanvas() {
+         canvas.width = window.innerWidth;
+         canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      class Particle {
+         constructor() {
+            this.reset();
+         }
+
+         reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 0.5;
+            this.speedX = (Math.random() - 0.5) * 0.5;
+            this.speedY = (Math.random() - 0.5) * 0.5;
+            this.opacity = Math.random() * 0.5 + 0.2;
+            this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
+         }
+
+         update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+
+            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+         }
+
+         draw() {
+            ctx.fillStyle = this.color;
+            ctx.globalAlpha = this.opacity;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+         }
+      }
+
+      const particles = [];
+      var particleCount;
+
+      if (window.innerWidth < 400) {
+         particleCount = 50;
+      } else if (window.innerWidth < 600) {
+         particleCount = 100;
+      } else if (window.innerWidth < 900) {
+         particleCount = 150;
+      } else if (window.innerWidth < 1200) {
+         particleCount = 250;
+      } else if (window.innerWidth < 1600) {
+         particleCount = 350;
+      } else if (window.innerWidth < 2000) {
+         particleCount = 550;
+      } else {
+         particleCount = 700;
+      }
+
+      for (let i = 0; i < particleCount; i++) {
+         particles.push(new Particle());
+      }
+
+      function animateParticles() {
+         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+         ctx.globalAlpha = 0.1;
+         for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+               const dx = particles[i].x - particles[j].x;
+               const dy = particles[i].y - particles[j].y;
+               const distance = Math.sqrt(dx * dx + dy * dy);
+
+               if (distance < 120) {
+                  ctx.strokeStyle = '#666666';
+                  ctx.lineWidth = 0.5;
+                  ctx.beginPath();
+                  ctx.moveTo(particles[i].x, particles[i].y);
+                  ctx.lineTo(particles[j].x, particles[j].y);
+                  ctx.stroke();
+               }
+            }
+         }
+
+         particles.forEach(particle => {
+            particle.update();
+            particle.draw();
+         });
+
+         requestAnimationFrame(animateParticles);
+      }
+
+      animateParticles();
+   </script>
 </body>
+
 </html>

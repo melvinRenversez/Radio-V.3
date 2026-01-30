@@ -140,12 +140,54 @@
         color: #666;
     }
 
-    /* Select custom */
-    .custom-select-wrapper {
-        position: relative;
+    /* URL Type Selector */
+    .url-type-selector {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
     }
 
-    .custom-select {
+    .url-type-btn {
+        flex: 1;
+        padding: 12px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        color: #666;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .url-type-btn:hover {
+        border-color: #fff;
+        color: #fff;
+    }
+
+    .url-type-btn.active {
+        background: #fff;
+        color: #0a0a0a;
+        border-color: #fff;
+    }
+
+    .url-type-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* MP3 File Selector */
+    .mp3-file-selector {
+        position: relative;
+        width: 100%;
+    }
+
+    .mp3-select-trigger {
         width: 100%;
         padding: 16px 20px;
         background: #1a1a1a;
@@ -156,21 +198,193 @@
         font-family: 'Inter', sans-serif;
         transition: all 0.3s ease;
         cursor: pointer;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
     }
 
-    .custom-select:focus {
-        outline: none;
+    .mp3-select-trigger:hover {
         border-color: #fff;
         background: #1f1f1f;
     }
 
-    .custom-select option {
-        background: #1a1a1a;
+    .mp3-select-trigger.active {
+        border-color: #fff;
+        background: #1f1f1f;
+    }
+
+    .mp3-select-placeholder {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        color: #666;
+        overflow: hidden;
+    }
+
+    .mp3-select-placeholder.has-value {
         color: #fff;
+    }
+
+    .mp3-select-placeholder svg {
+        width: 24px;
+        height: 24px;
+        color: #666;
+        flex-shrink: 0;
+    }
+
+    .mp3-select-placeholder span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mp3-select-arrow {
+        width: 20px;
+        height: 20px;
+        color: #666;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .mp3-select-trigger.active .mp3-select-arrow {
+        transform: rotate(180deg);
+    }
+
+    .mp3-select-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
         padding: 12px;
+        max-height: 400px;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 100;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .mp3-select-dropdown.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .mp3-select-search {
+        margin-bottom: 12px;
+    }
+
+    .mp3-search-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: #0a0a0a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .mp3-search-input:focus {
+        outline: none;
+        border-color: #666;
+    }
+
+    .mp3-search-input::placeholder {
+        color: #666;
+    }
+
+    .mp3-select-options {
+        max-height: 300px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .mp3-select-options::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .mp3-select-options::-webkit-scrollbar-track {
+        background: #0a0a0a;
+        border-radius: 3px;
+    }
+
+    .mp3-select-options::-webkit-scrollbar-thumb {
+        background: #2a2a2a;
+        border-radius: 3px;
+    }
+
+    .mp3-select-options::-webkit-scrollbar-thumb:hover {
+        background: #444;
+    }
+
+    .mp3-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .mp3-option:hover {
+        background: #2a2a2a;
+        border-color: #444;
+    }
+
+    .mp3-option.selected {
+        background: #2a2a2a;
+        border-color: #fff;
+    }
+
+    .mp3-option-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #0a0a0a;
+        border: 1px solid #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .mp3-option-icon svg {
+        width: 20px;
+        height: 20px;
+        color: #666;
+    }
+
+    .mp3-option.selected .mp3-option-icon {
+        border-color: #fff;
+    }
+
+    .mp3-option.selected .mp3-option-icon svg {
+        color: #fff;
+    }
+
+    .mp3-option-text {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 400;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mp3-option.hidden {
+        display: none;
     }
 
     /* Custom Artist Select with Search */
@@ -551,51 +765,6 @@
         display: none;
     }
 
-    /* Arrow icon for select */
-    .custom-select-wrapper::after {
-        content: '';
-        position: absolute;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 6px 5px 0 5px;
-        border-color: #666 transparent transparent transparent;
-        pointer-events: none;
-    }
-
-    /* Cover preview section */
-    .cover-preview-section {
-        margin-top: 16px;
-        padding: 20px;
-        background: #1a1a1a;
-        border-radius: 16px;
-        display: none;
-    }
-
-    .cover-preview-section.active {
-        display: block;
-    }
-
-    .cover-preview-label {
-        font-size: 12px;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 12px;
-        display: block;
-    }
-
-    .cover-preview {
-        width: 120px;
-        height: 120px;
-        border-radius: 12px;
-        object-fit: cover;
-        border: 2px solid #2a2a2a;
-    }
-
     /* Submit button */
     .submit-btn {
         width: 100%;
@@ -815,6 +984,10 @@
             transform: scale(1.2);
         }
     }
+
+    .hidden {
+        display: none !important;
+    }
 </style>
 
 <body>
@@ -829,7 +1002,7 @@
                     <circle cx="50" cy="50" r="45"></circle>
                 </svg>
             </div>
-            <h2 class="loading-title">Uploading Track</h2>
+            <h2 class="loading-title">Adding Track</h2>
             <p class="loading-text">Please wait while we process your music file...</p>
             <div class="loading-bar-wrapper">
                 <div class="loading-bar"></div>
@@ -872,10 +1045,61 @@
             <!-- URL -->
             <div class="form-group">
                 <label class="form-label">
-                    URL <span class="required">*</span>
+                    Audio Source <span class="required">*</span>
                 </label>
-                <input type="text" name="url" class="form-input" placeholder="track-file.mp3" required>
-                <p class="helper-text">Filename of the audio file</p>
+
+                <!-- URL Type Selector -->
+                <div class="url-type-selector">
+                    <button type="button" class="url-type-btn active" data-type="file" id="btnFileType">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                        </svg>
+                        Select File
+                    </button>
+                    <button type="button" class="url-type-btn" data-type="url" id="btnUrlType">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        Enter URL
+                    </button>
+                </div>
+
+                <!-- File Selector -->
+                <div id="fileSelector">
+                    <input type="hidden" name="url" id="urlInput" required>
+
+                    <div class="mp3-file-selector" id="customMp3Select">
+                        <div class="mp3-select-trigger" id="mp3SelectTrigger">
+                            <div class="mp3-select-placeholder">
+                                <span>Select an MP3 file</span>
+                            </div>
+                            <svg class="mp3-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+
+                        <div class="mp3-select-dropdown" id="mp3SelectDropdown">
+                            <div class="mp3-select-search">
+                                <input type="text" id="mp3SearchInput" class="mp3-search-input"
+                                    placeholder="Search MP3 files...">
+                            </div>
+                            <div class="mp3-select-options" id="mp3SelectOptions">
+                                <!-- MP3 files will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- URL Input -->
+                <div id="urlInputField" class="hidden">
+                    <input type="text" name="url" id="customUrlInput" class="form-input"
+                        placeholder="https://example.com/audio.mp3 or filename.mp3">
+                </div>
+
+                <p class="helper-text">Choose an existing MP3 file or enter a complete URL</p>
             </div>
 
             <!-- Year -->
@@ -891,10 +1115,8 @@
                     Artist <span class="required">*</span>
                 </label>
                 
-                <!-- Hidden input pour le formulaire -->
                 <input type="hidden" name="artist" id="artistInput" required>
                 
-                <!-- Custom select avec recherche -->
                 <div class="custom-artist-select" id="customArtistSelect">
                     <div class="artist-select-trigger" id="artistSelectTrigger">
                         <div class="artist-select-placeholder">
@@ -932,10 +1154,8 @@
                     Cover <span class="required">*</span>
                 </label>
                 
-                <!-- Hidden input pour le formulaire -->
                 <input type="hidden" name="cover" id="coverInput" required>
                 
-                <!-- Custom select avec images -->
                 <div class="custom-cover-select" id="customCoverSelect">
                     <div class="cover-select-trigger" id="coverSelectTrigger">
                         <div class="cover-select-placeholder">
@@ -969,40 +1189,188 @@
 
     <script>
         // ============================================
+        // MP3 FILES DATA FROM SERVER
+        // ============================================
+        const mp3Files = <%- JSON.stringify(mp3s) %>;
+
+        // ============================================
+        // INITIALIZE ON LOAD
+        // ============================================
+        window.addEventListener('DOMContentLoaded', function () {
+            populateMp3Options();
+        });
+
+        // ============================================
+        // POPULATE MP3 OPTIONS
+        // ============================================
+        function populateMp3Options() {
+            const mp3SelectOptions = document.getElementById('mp3SelectOptions');
+
+            mp3Files.forEach(file => {
+                const option = document.createElement('div');
+                option.className = 'mp3-option';
+                option.dataset.value = file;
+
+                option.innerHTML = `
+                    <div class="mp3-option-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                    </div>
+                    <span class="mp3-option-text">${file}</span>
+                `;
+
+                mp3SelectOptions.appendChild(option);
+            });
+        }
+
+        // ============================================
+        // URL TYPE TOGGLE
+        // ============================================
+        const btnFileType = document.getElementById('btnFileType');
+        const btnUrlType = document.getElementById('btnUrlType');
+        const fileSelector = document.getElementById('fileSelector');
+        const urlInputField = document.getElementById('urlInputField');
+        const urlInput = document.getElementById('urlInput');
+        const customUrlInput = document.getElementById('customUrlInput');
+
+        btnFileType.addEventListener('click', () => {
+            btnFileType.classList.add('active');
+            btnUrlType.classList.remove('active');
+            fileSelector.classList.remove('hidden');
+            urlInputField.classList.add('hidden');
+            urlInput.disabled = false;
+            customUrlInput.disabled = true;
+            urlInput.required = true;
+            customUrlInput.required = false;
+        });
+
+        btnUrlType.addEventListener('click', () => {
+            btnUrlType.classList.add('active');
+            btnFileType.classList.remove('active');
+            urlInputField.classList.remove('hidden');
+            fileSelector.classList.add('hidden');
+            customUrlInput.disabled = false;
+            urlInput.disabled = true;
+            customUrlInput.required = true;
+            urlInput.required = false;
+        });
+
+        // ============================================
         // FORM SUBMISSION & LOADING OVERLAY
         // ============================================
-        
         const addTitleForm = document.getElementById('addTitleForm');
         const loadingOverlay = document.getElementById('loadingOverlay');
 
         addTitleForm.addEventListener('submit', function(e) {
+            // Update URL input based on selected type
+            if (!btnFileType.classList.contains('active')) {
+                urlInput.value = customUrlInput.value;
+            }
             
-            // Afficher le loading overlay
             loadingOverlay.classList.add('active');
-            
-            // Le formulaire va se soumettre normalement
-            // Si vous voulez empêcher la soumission pour tester, décommentez la ligne suivante:
-            // e.preventDefault();
+        });
+
+        // ============================================
+        // CUSTOM MP3 SELECT WITH SEARCH
+        // ============================================
+        const customMp3Select = document.getElementById('customMp3Select');
+        const mp3SelectTrigger = document.getElementById('mp3SelectTrigger');
+        const mp3SelectDropdown = document.getElementById('mp3SelectDropdown');
+        const mp3SearchInput = document.getElementById('mp3SearchInput');
+
+        mp3SelectTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isActive = mp3SelectDropdown.classList.contains('active');
+
+            if (isActive) {
+                closeMp3Dropdown();
+            } else {
+                openMp3Dropdown();
+            }
+        });
+
+        function openMp3Dropdown() {
+            mp3SelectDropdown.classList.add('active');
+            mp3SelectTrigger.classList.add('active');
+            mp3SearchInput.focus();
+        }
+
+        function closeMp3Dropdown() {
+            mp3SelectDropdown.classList.remove('active');
+            mp3SelectTrigger.classList.remove('active');
+            mp3SearchInput.value = '';
+            const mp3Options = document.querySelectorAll('.mp3-option');
+            mp3Options.forEach(opt => opt.classList.remove('hidden'));
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!customMp3Select.contains(e.target)) {
+                closeMp3Dropdown();
+            }
+        });
+
+        // Handle MP3 option selection (using event delegation)
+        document.getElementById('mp3SelectOptions').addEventListener('click', (e) => {
+            const option = e.target.closest('.mp3-option');
+            if (!option) return;
+
+            const value = option.dataset.value;
+            urlInput.value = value;
+
+            const mp3Options = document.querySelectorAll('.mp3-option');
+            mp3Options.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            const placeholder = mp3SelectTrigger.querySelector('.mp3-select-placeholder');
+            placeholder.classList.add('has-value');
+            placeholder.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+                <span>${value}</span>
+            `;
+
+            closeMp3Dropdown();
+        });
+
+        mp3SearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const mp3Options = document.querySelectorAll('.mp3-option');
+
+            mp3Options.forEach(option => {
+                const text = option.querySelector('.mp3-option-text').textContent.toLowerCase();
+
+                if (text.includes(searchTerm)) {
+                    option.classList.remove('hidden');
+                } else {
+                    option.classList.add('hidden');
+                }
+            });
+        });
+
+        mp3SelectDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
 
         // ============================================
         // CUSTOM ARTIST SELECT WITH SEARCH
         // ============================================
-        
         const customArtistSelect = document.getElementById('customArtistSelect');
         const artistSelectTrigger = document.getElementById('artistSelectTrigger');
         const artistSelectDropdown = document.getElementById('artistSelectDropdown');
-        const artistSelectOptions = document.getElementById('artistSelectOptions');
         const artistSearchInput = document.getElementById('artistSearchInput');
         const artistInput = document.getElementById('artistInput');
         const artistOptions = document.querySelectorAll('.artist-option');
 
-        // Toggle dropdown
         artistSelectTrigger.addEventListener('click', (e) => {
             e.stopPropagation();
             const isActive = artistSelectDropdown.classList.contains('active');
             
-            // Fermer le dropdown des covers si ouvert
             if (coverSelectDropdown.classList.contains('active')) {
                 closeDropdown();
             }
@@ -1024,31 +1392,24 @@
             artistSelectDropdown.classList.remove('active');
             artistSelectTrigger.classList.remove('active');
             artistSearchInput.value = '';
-            // Réafficher toutes les options
             artistOptions.forEach(opt => opt.classList.remove('hidden'));
         }
 
-        // Fermer au clic extérieur
         document.addEventListener('click', (e) => {
             if (!customArtistSelect.contains(e.target) && !customCoverSelect.contains(e.target)) {
                 closeArtistDropdown();
             }
         });
 
-        // Sélection d'une option
         artistOptions.forEach(option => {
             option.addEventListener('click', () => {
                 const value = option.dataset.value;
                 const text = option.querySelector('.artist-option-text').textContent;
                 
-                // Mettre à jour l'input caché
                 artistInput.value = value;
-                
-                // Retirer la sélection des autres options
                 artistOptions.forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
                 
-                // Mettre à jour le trigger
                 const placeholder = artistSelectTrigger.querySelector('.artist-select-placeholder');
                 placeholder.classList.add('has-value');
                 placeholder.innerHTML = `
@@ -1059,12 +1420,10 @@
                     <span>${text}</span>
                 `;
                 
-                // Fermer le dropdown
                 closeArtistDropdown();
             });
         });
 
-        // Recherche dans les artistes
         artistSearchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase().trim();
             
@@ -1079,7 +1438,6 @@
             });
         });
 
-        // Empêcher la fermeture au clic dans le dropdown
         artistSelectDropdown.addEventListener('click', (e) => {
             e.stopPropagation();
         });
@@ -1087,21 +1445,17 @@
         // ============================================
         // CUSTOM COVER SELECT WITH IMAGES
         // ============================================
-        
         const customCoverSelect = document.getElementById('customCoverSelect');
         const coverSelectTrigger = document.getElementById('coverSelectTrigger');
         const coverSelectDropdown = document.getElementById('coverSelectDropdown');
-        const coverSelectOptions = document.getElementById('coverSelectOptions');
         const coverSearchInput = document.getElementById('coverSearchInput');
         const coverInput = document.getElementById('coverInput');
         const coverOptions = document.querySelectorAll('.cover-option');
 
-        // Toggle dropdown
         coverSelectTrigger.addEventListener('click', (e) => {
             e.stopPropagation();
             const isActive = coverSelectDropdown.classList.contains('active');
             
-            // Fermer le dropdown des artistes si ouvert
             if (artistSelectDropdown.classList.contains('active')) {
                 closeArtistDropdown();
             }
@@ -1123,32 +1477,25 @@
             coverSelectDropdown.classList.remove('active');
             coverSelectTrigger.classList.remove('active');
             coverSearchInput.value = '';
-            // Réafficher toutes les options
             coverOptions.forEach(opt => opt.classList.remove('hidden'));
         }
 
-        // Fermer au clic extérieur
         document.addEventListener('click', (e) => {
             if (!customCoverSelect.contains(e.target)) {
                 closeDropdown();
             }
         });
 
-        // Sélection d'une option
         coverOptions.forEach(option => {
             option.addEventListener('click', () => {
                 const value = option.dataset.value;
                 const url = option.dataset.url;
                 const text = option.querySelector('.cover-option-text').textContent;
                 
-                // Mettre à jour l'input caché
                 coverInput.value = value;
-                
-                // Retirer la sélection des autres options
                 coverOptions.forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
                 
-                // Mettre à jour le trigger
                 const placeholder = coverSelectTrigger.querySelector('.cover-select-placeholder');
                 placeholder.classList.add('has-value');
                 placeholder.innerHTML = `
@@ -1156,12 +1503,10 @@
                     <span>${text}</span>
                 `;
                 
-                // Fermer le dropdown
                 closeDropdown();
             });
         });
 
-        // Recherche dans les covers
         coverSearchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase().trim();
             
@@ -1176,15 +1521,13 @@
             });
         });
 
-        // Empêcher la fermeture au clic dans le dropdown
         coverSelectDropdown.addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
         // ============================================
-        // SYSTÈME DE PARTICULES CANVAS
+        // PARTICLE SYSTEM
         // ============================================
-        
         const canvas = document.getElementById('particleCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -1228,23 +1571,23 @@
         }
         
         const particles = [];
-            var particleCount;
+        var particleCount;
 
-    if (window.innerWidth < 400) {
-        particleCount = 50;
-    }else if (window.innerWidth < 600) {
-        particleCount = 100;
-    }else if (window.innerWidth < 900) {
-        particleCount = 150;
-    }else if (window.innerWidth < 1200) {
-        particleCount = 250;
-    }else if (window.innerWidth < 1600) {
-        particleCount = 350;
-    }else if (window.innerWidth < 2000) {
-        particleCount = 550;
-    }else {
-        particleCount = 700;
-    }
+        if (window.innerWidth < 400) {
+            particleCount = 50;
+        } else if (window.innerWidth < 600) {
+            particleCount = 100;
+        } else if (window.innerWidth < 900) {
+            particleCount = 150;
+        } else if (window.innerWidth < 1200) {
+            particleCount = 250;
+        } else if (window.innerWidth < 1600) {
+            particleCount = 350;
+        } else if (window.innerWidth < 2000) {
+            particleCount = 550;
+        } else {
+            particleCount = 700;
+        }
         
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle());

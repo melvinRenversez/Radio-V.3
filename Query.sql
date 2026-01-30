@@ -118,4 +118,12 @@ FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste
 LEFT JOIN covers ON covers.id = titles.fk_cover
 where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);
 
-
+SELECT titles.id, 
+	COALESCE(titles.titre,'Unknown') AS titre, 
+	COALESCE(titles.url,'') AS url, 
+	COALESCE(titles.annee,'0000') AS annee, 
+	COALESCE(artistes.nom,'Unknown') AS artiste, 
+	COALESCE(covers.url,'default.png') AS cover 
+FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste 
+LEFT JOIN covers ON covers.id = titles.fk_cover
+where titles.id = 1;

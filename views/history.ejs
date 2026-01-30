@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listening History - RadioMel</title>
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        min-height: 100vh;
+        background: #0a0a0a;
+        font-family: 'Inter', sans-serif;
+        color: #fff;
+        position: relative;
+        overflow-x: hidden;
+        padding: 40px 20px;
+    }
+
+    /* Canvas pour les particules */
+    #particleCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Container principal */
+    .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Header */
+    .header {
+        margin-bottom: 48px;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 48px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 16px;
+        letter-spacing: -1px;
+    }
+
+    .subtitle {
+        font-size: 16px;
+        font-weight: 400;
+        color: #666;
+        margin-bottom: 24px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 14px 28px;
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 15px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .action-btn:hover {
+        background: #1f1f1f;
+        border-color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .action-btn:hover::before {
+        opacity: 1;
+    }
+
+    .btn-icon {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
+    }
+
+    /* Stats container */
+    .stats-container {
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 32px;
+        margin-bottom: 40px;
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 24px 32px;
+        margin-bottom: 40px;
+    }
+
+    .pagination-btn {
+        padding: 12px 24px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background: #2a2a2a;
+        border-color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .pagination-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .pagination-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .page-indicator {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .items-indicator {
+        font-size: 12px;
+        color: #666;
+    }
+
+    /* Timeline container */
+    .timeline-container {
+        position: relative;
+    }
+
+    /* Date separator */
+    .date-separator {
+        position: relative;
+        text-align: center;
+        margin: 40px 0 32px 0;
+    }
+
+    .date-separator-line {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, #2a2a2a 20%, #2a2a2a 80%, transparent 100%);
+    }
+
+    .date-separator-text {
+        position: relative;
+        display: inline-block;
+        background: #0a0a0a;
+        padding: 8px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Timeline item */
+    .timeline-item {
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 16px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .timeline-item:hover {
+        border-color: #2a2a2a;
+        transform: translateX(8px);
+    }
+
+    .timeline-item:hover::before {
+        opacity: 1;
+    }
+
+    /* Cover image */
+    .timeline-cover {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #1a1a1a;
+        position: relative;
+    }
+
+    .timeline-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .timeline-item:hover .timeline-cover img {
+        transform: scale(1.1);
+    }
+
+    /* Play icon overlay */
+    .play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .timeline-item:hover .play-overlay {
+        opacity: 1;
+    }
+
+    .play-icon {
+        width: 32px;
+        height: 32px;
+        stroke: #fff;
+        stroke-width: 2;
+    }
+
+    /* Timeline content */
+    .timeline-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .timeline-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .timeline-artist {
+        font-size: 14px;
+        font-weight: 400;
+        color: #666;
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .timeline-meta {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .meta-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #666;
+        padding: 4px 12px;
+        background: #1a1a1a;
+        border-radius: 8px;
+    }
+
+    .meta-badge svg {
+        width: 14px;
+        height: 14px;
+        stroke: #666;
+        stroke-width: 2;
+    }
+
+    /* Timeline time */
+    .timeline-time {
+        font-size: 14px;
+        font-weight: 500;
+        color: #444;
+        text-align: right;
+        min-width: 60px;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #666;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-state-text {
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    /* Table View Styles */
+    .table-container {
+        background: #12121255;
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 32px;
+        overflow-x: auto;
+        display: none;
+    }
+
+    .table-container.active {
+        display: block;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .history-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .history-table th {
+        background: #1a1a1a;
+        color: #666;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 16px 20px;
+        text-align: left;
+        border: none;
+    }
+
+    .history-table th:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    .history-table th:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .history-table tbody tr {
+        background: #1a1a1a;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .history-table tbody tr:hover {
+        background: #2a2a2a;
+        transform: translateX(4px);
+    }
+
+    .history-table td {
+        padding: 16px 20px;
+        border: none;
+        color: #fff;
+        font-size: 14px;
+    }
+
+    .history-table tbody tr td:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    .history-table tbody tr td:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .table-cover-cell {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .table-cover {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #0a0a0a;
+    }
+
+    .table-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .table-track-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .table-title {
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table-artist {
+        font-size: 12px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table-date-cell {
+        color: #666;
+        font-size: 12px;
+    }
+
+    .table-time-cell {
+        color: #444;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .table-duration-cell {
+        color: #666;
+    }
+
+    .table-year-cell {
+        color: #666;
+    }
+
+    .table-id-cell {
+        color: #444;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+    }
+
+    .timeline-container {
+        position: relative;
+        display: none;
+    }
+
+    .timeline-container.active {
+        display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 36px;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .stats-container {
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+        }
+
+        .timeline-item {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .timeline-cover {
+            width: 100%;
+            height: 200px;
+        }
+
+        .timeline-time {
+            text-align: left;
+            min-width: auto;
+        }
+
+        .timeline-meta {
+            width: 100%;
+        }
+
+        /* Table responsive */
+        .table-container {
+            padding: 16px;
+        }
+
+        .history-table {
+            font-size: 12px;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 12px 8px;
+        }
+
+        .table-cover {
+            width: 40px;
+            height: 40px;
+        }
+
+        .table-cover-cell {
+            gap: 12px;
+        }
+
+        /* Hide some columns on mobile */
+        .hide-mobile {
+            display: none;
+        }
+
+        /* Pagination responsive */
+        .pagination-container {
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .pagination-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Animation pour l'apparition des items */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .timeline-item {
+        animation: fadeInUp 0.5s ease backwards;
+    }
+</style>
+
+<body>
+    <!-- Canvas pour les particules -->
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Listening History</h1>
+            <p class="subtitle">Your recent tracks</p>
+            <div class="header-actions">
+                <a href="/" class="action-btn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Back to Library
+                </a>
+                <button class="action-btn" id="toggleViewBtn">
+                    <svg class="btn-icon" id="viewIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    <span id="viewText">Table View</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-label">Total Plays</span>
+                <span class="stat-value" id="totalPlays">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Unique Tracks</span>
+                <span class="stat-value" id="uniqueTracks">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Total Duration</span>
+                <span class="stat-value" id="totalDuration">0h</span>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <button class="pagination-btn" id="prevBtn" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Previous
+            </button>
+            <div class="pagination-info">
+                <span class="page-indicator">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                <span class="items-indicator">(<span id="itemsRange">1-50</span> of <span id="totalItems">0</span> items)</span>
+            </div>
+            <button class="pagination-btn" id="nextBtn">
+                Next
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-container active" id="timelineContainer">
+            <!-- Les items seront injectés ici -->
+        </div>
+
+        <!-- Table View -->
+        <div class="table-container" id="tableContainer">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Track</th>
+                        <th>Artist</th>
+                        <th class="hide-mobile">Year</th>
+                        <th class="hide-mobile">Duration</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th class="hide-mobile">ID</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Les lignes seront injectées ici -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">🎵</div>
+            <p class="empty-state-text">No listening history yet</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+
+        const ITEMS_PER_PAGE = 50;
+        const REFRESH_INTERVAL = 2000; // 2 secondes
+
+        // ============================================
+        // DONNÉES DU SERVEUR
+        // ============================================
+
+        let allHistory = <%- JSON.stringify(history) %>;
+        let currentPage = <%= currentPage || 1 %>;
+        let totalCount = <%= totalCount || 0 %>;
+
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+
+        let currentView = 'timeline'; // 'timeline' or 'table'
+        let refreshTimer = null;
+
+        // ============================================
+        // FONCTIONS UTILITAIRES
+        // ============================================
+
+        function formatDuration(seconds) {
+            if (!seconds) return '--:--';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return 'Today';
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return 'Yesterday';
+            } else {
+                return date.toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
+        }
+
+        function groupByDate(history) {
+            const groups = {};
+
+            history.forEach(item => {
+                const dateKey = formatDate(item.played_at);
+                if (!groups[dateKey]) {
+                    groups[dateKey] = [];
+                }
+                groups[dateKey].push(item);
+            });
+
+            return groups;
+        }
+
+        function calculateStats(history, total) {
+            const totalPlays = total || history.length;
+            const uniqueTracks = new Set(history.map(item => item.titre_id)).size;
+            const totalDuration = history.reduce((sum, item) => sum + (item.duree || 0), 0);
+
+            return {
+                totalPlays,
+                uniqueTracks,
+                totalDuration: Math.floor(totalDuration / 3600) // Convert to hours
+            };
+        }
+
+        // ============================================
+        // PAGINATION
+        // ============================================
+
+        function updatePagination() {
+            const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+            const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+            const end = Math.min(currentPage * ITEMS_PER_PAGE, totalCount);
+
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages || 1;
+            document.getElementById('itemsRange').textContent = totalCount > 0 ? `${start}-${end}` : '0';
+            document.getElementById('totalItems').textContent = totalCount;
+
+            // Update button states
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function navigateToPage(page) {
+            if (page < 1) page = 1;
+            const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+            if (page > totalPages) page = totalPages;
+
+            window.location.href = `/history/${page}`;
+        }
+
+        // ============================================
+        // AUTO-REFRESH
+        // ============================================
+
+        async function refreshHistory() {
+            try {
+                const response = await fetch(`/api/history/${currentPage}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Check if data has changed
+                    if (JSON.stringify(data.history) !== JSON.stringify(allHistory) || data.totalCount !== totalCount) {
+                        allHistory = data.history;
+                        totalCount = data.totalCount;
+
+                        // Re-render views
+                        renderTimeline(allHistory);
+                        renderTable(allHistory);
+                        updateStats(allHistory, totalCount);
+                        updatePagination();
+                    }
+                }
+            } catch (error) {
+                console.error('Error refreshing history:', error);
+            }
+        }
+
+        function startAutoRefresh() {
+            // Initial refresh
+            refreshHistory();
+
+            // Set up interval
+            refreshTimer = setInterval(refreshHistory, REFRESH_INTERVAL);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+        }
+
+        // Stop refresh when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+
+        function renderTable(history) {
+            const tableBody = document.getElementById('tableBody');
+            const tableContainer = document.getElementById('tableContainer');
+            const timelineContainer = document.getElementById('timelineContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            if (history.length === 0) {
+                tableContainer.classList.remove('active');
+                timelineContainer.classList.remove('active');
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tableBody.innerHTML = '';
+
+            history.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.style.animationDelay = `${index * 0.03}s`;
+                row.style.animation = 'fadeInUp 0.5s ease backwards';
+
+                row.innerHTML = `
+                    <td>
+                        <div class="table-cover-cell">
+                            <div class="table-cover">
+                                <img src="../Covers/${item.cover}" alt="${item.titre}">
+                            </div>
+                            <div class="table-track-info">
+                                <div class="table-title">${item.titre}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="table-artist">${item.artist}</td>
+                    <td class="table-year-cell hide-mobile">${item.annee || '-'}</td>
+                    <td class="table-duration-cell hide-mobile">${formatDuration(item.duree)}</td>
+                    <td class="table-date-cell">${formatDate(item.played_at)}</td>
+                    <td class="table-time-cell">${formatTime(item.played_at)}</td>
+                    <td class="table-id-cell hide-mobile">#${item.id}</td>
+                `;
+
+                // Click handler
+                row.addEventListener('click', () => {
+                    window.location.href = `/show-title/${item.titre_id}`;
+                });
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function renderTimeline(history) {
+            const container = document.getElementById('timelineContainer');
+            const tableContainer = document.getElementById('tableContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            if (history.length === 0) {
+                container.classList.remove('active');
+                tableContainer.classList.remove('active');
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+
+            const groupedHistory = groupByDate(history);
+
+            Object.keys(groupedHistory).forEach((date, groupIndex) => {
+                // Date separator
+                const separator = document.createElement('div');
+                separator.className = 'date-separator';
+                separator.innerHTML = `
+                    <div class="date-separator-line"></div>
+                    <span class="date-separator-text">${date}</span>
+                `;
+                container.appendChild(separator);
+
+                // Timeline items
+                groupedHistory[date].forEach((item, index) => {
+                    const timelineItem = document.createElement('div');
+                    timelineItem.className = 'timeline-item';
+                    timelineItem.style.animationDelay = `${(groupIndex * 0.1) + (index * 0.05)}s`;
+
+                    timelineItem.innerHTML = `
+                        <div class="timeline-cover">
+                            <img src="../Covers/${item.cover}" alt="${item.titre}">
+                            <div class="play-overlay">
+                                <svg class="play-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">${item.titre}</div>
+                            <div class="timeline-artist">${item.artist}</div>
+                            <div class="timeline-meta">
+                                ${item.duree ? `
+                                    <span class="meta-badge">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        ${formatDuration(item.duree)}
+                                    </span>
+                                ` : ''}
+                                ${item.annee ? `
+                                    <span class="meta-badge">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                                        </svg>
+                                        ${item.annee}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="timeline-time">${formatTime(item.played_at)}</div>
+                    `;
+
+                    // Click handler
+                    timelineItem.addEventListener('click', () => {
+                        window.location.href = `/show-title/${item.titre_id}`;
+                    });
+
+                    container.appendChild(timelineItem);
+                });
+            });
+        }
+
+        function updateStats(history, total) {
+            const stats = calculateStats(history, total);
+
+            document.getElementById('totalPlays').textContent = stats.totalPlays;
+            document.getElementById('uniqueTracks').textContent = stats.uniqueTracks;
+            document.getElementById('totalDuration').textContent = stats.totalDuration + 'h';
+        }
+
+        // ============================================
+        // EVENT HANDLERS
+        // ============================================
+
+        document.getElementById('toggleViewBtn').addEventListener('click', () => {
+            const timelineContainer = document.getElementById('timelineContainer');
+            const tableContainer = document.getElementById('tableContainer');
+            const viewText = document.getElementById('viewText');
+            const viewIcon = document.getElementById('viewIcon');
+
+            if (currentView === 'timeline') {
+                // Switch to table view
+                timelineContainer.classList.remove('active');
+                tableContainer.classList.add('active');
+                viewText.textContent = 'Timeline View';
+                viewIcon.innerHTML = `
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                `;
+                currentView = 'table';
+            } else {
+                // Switch to timeline view
+                tableContainer.classList.remove('active');
+                timelineContainer.classList.add('active');
+                viewText.textContent = 'Table View';
+                viewIcon.innerHTML = `
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                `;
+                currentView = 'timeline';
+            }
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                navigateToPage(currentPage - 1);
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+            if (currentPage < totalPages) {
+                navigateToPage(currentPage + 1);
+            }
+        });
+
+        // ============================================
+        // INITIALISATION
+        // ============================================
+
+        renderTimeline(allHistory);
+        renderTable(allHistory);
+        updateStats(allHistory, totalCount);
+        updatePagination();
+
+        // Start auto-refresh
+        startAutoRefresh();
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            stopAutoRefresh();
+        });
+
+        // ============================================
+        // SYSTÈME DE PARTICULES CANVAS
+        // ============================================
+
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const particles = [];
+        let particleCount;
+
+        if (window.innerWidth < 400) {
+            particleCount = 50;
+        } else if (window.innerWidth < 600) {
+            particleCount = 100;
+        } else if (window.innerWidth < 900) {
+            particleCount = 150;
+        } else if (window.innerWidth < 1200) {
+            particleCount = 250;
+        } else if (window.innerWidth < 1600) {
+            particleCount = 350;
+        } else if (window.innerWidth < 2000) {
+            particleCount = 550;
+        } else {
+            particleCount = 700;
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.globalAlpha = 0.1;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 120) {
+                        ctx.strokeStyle = '#666666';
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animateParticles);
+        }
+
+        animateParticles();
+    </script>
+</body>
+
+</html>

@@ -6,7 +6,9 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import { execFile } from "child_process";
 import sharp from "sharp";
-import { Console } from 'console';
+import { promisify } from "util";
+import fs from "fs/promises";
+
 
 const pool = mysql.createPool({
     host: 'localhost',
@@ -22,6 +24,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const musicFolder = path.join(__dirname, "Music");
 const coversFolder = path.join(__dirname, "Covers");
+
+
+const execFileAsync = promisify(execFile);
 
 const app = express();
 const PORT = 3000;
@@ -58,63 +63,364 @@ app.get("/add-title", async (req, res) => {
     const [artistes] = await pool.query("select id, nom from artistes;");
     const [covers] = await pool.query("select id, url from covers;");
 
-    res.render("add-title", { artistes, covers });
+    const files = await fs.readdir(musicFolder);
+    const mp3s = files.filter(file => file.endsWith(".mp3"));
+
+    res.render("add-title", { artistes, covers, mp3s });
 });
 
-app.post("/add-title", async (req, res) => {
+app.get("/edit-title/:id", async (req, res) => {
 
+    let id = req.params.id;
+
+    const [title] = await pool.query("SELECT id, titre, url, duree, annee, fk_artiste, fk_cover FROM titles WHERE id = ?", [id]);
+
+    const [artistes] = await pool.query("select id, nom from artistes;");
+    const [covers] = await pool.query("select id, url from covers;");
+
+    const files = await fs.readdir(musicFolder);
+    const mp3s = files.filter(file => file.endsWith(".mp3"));
+
+
+    console.log(title);
+    console.log(artistes);
+    console.log(covers);
+    console.log(mp3s);
+
+    res.render("edit-title", { title: title[0], artistes, covers, mp3s });
+});
+
+app.get("/show-title/:id", async (req, res) => {
+
+    let id = req.params.id;
+    console.log("👀 Showing title:", id);
+
+    const [title] = await pool.query("SELECT titles.id, COALESCE(titles.titre,'Unknown') AS titre, COALESCE(titles.url,'') AS url, COALESCE(titles.annee,'0000') AS annee, COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover  FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste  LEFT JOIN covers ON covers.id = titles.fk_cover where titles.id = ?;", [id]);
+
+
+    const [artistes] = await pool.query("select id, nom from artistes;");
+    const [covers] = await pool.query("select id, url from covers;");
+
+    console.log(title);
+    console.log(artistes);
+    console.log(covers);
+
+    console.log(allTitles);
+
+    res.render("show-title", { title: title[0], artistes, covers });
+});
+
+
+app.get("/history/:page", async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const limit = 50;
+    const offset = (page - 1) * limit;
+
+
+    const [rows] = await pool.query(
+        `SELECT h.id, titre, t.id as titre_id, duree, annee, c.url as cover, nom as artist, played_at 
+         FROM history h  
+         JOIN titles t ON t.id = h.fk_title 
+         JOIN covers c ON c.id = t.fk_cover 
+         JOIN artistes a ON a.id = t.fk_artiste 
+         ORDER BY h.id DESC 
+         LIMIT ? OFFSET ?`,
+        [limit, offset]
+    );
+
+    const [countResult] = await pool.query("SELECT COUNT(*) as count FROM history");
+    const totalCount = countResult[0].count;
+
+    console.log(rows);
+
+    res.render("history", {
+        history: rows,
+        totalCount: totalCount,
+        currentPage: page
+    });
+});
+
+
+app.get("/api/history/:page", async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const limit = 50;
+    const offset = (page - 1) * limit;
+
+    const [rows] = await pool.query(
+        `SELECT h.id, titre, t.id as titre_id, duree, annee, c.url as cover, nom as artist, played_at 
+         FROM history h  
+         JOIN titles t ON t.id = h.fk_title 
+         JOIN covers c ON c.id = t.fk_cover 
+         JOIN artistes a ON a.id = t.fk_artiste 
+         ORDER BY h.id DESC 
+         LIMIT ? OFFSET ?`,
+        [limit, offset]
+    );
+
+    const [countResult] = await pool.query("SELECT COUNT(*) as count FROM history");
+    const totalCount = countResult[0].count;
+
+    res.json({
+        history: rows,
+        totalCount: totalCount
+    });
+});
+
+
+app.post("/add-title", async (req, res) => {
+    console.log("📥 Adding title:", req.body);
     let { title, url, year, artist, cover } = req.body;
+
+
+    console.log(title);
+    console.log(url);
+    console.log(year);
+    console.log(artist);
+    console.log(cover);
 
     artist = artist || null;
     cover = cover || null;
     year = year || null;
 
-    const safeTitle = title.replace(/[<>:"/\\|?*]+/g, "").trim();
-    const outputFile = `${musicFolder}/${safeTitle}.%(ext)s`;
+    try {
+        let finalFileName;
 
-    const cmd = [
-        "yt-dlp",
-        "-f", "bestaudio",
-        "-x",
-        "--audio-format", "mp3",
-        "-o", outputFile,
-        url
-    ];
+        // ========================================
+        // CAS 1 : URL YouTube → télécharger
+        // ========================================
+        if (url && /^https?:\/\//i.test(url)) {
+            console.log("📥 Downloading from URL:", url);
 
-    execFile(cmd[0], cmd.slice(1), async (error) => {
-        if (error) {
-            console.error(error);
-            return res.status(500).send("Download failed");
-        }
-
-        try {
-            await pool.query(
-                `INSERT INTO titles (titre, url, annee, fk_artiste, fk_cover)
-                VALUES (?, ?, ?, ?, ?)`,
-                [safeTitle, `${safeTitle}.mp3`, year, artist, cover]
+            const outputTemplate = path.join(
+                musicFolder,
+                "%(title)s.mp3"
             );
 
-            res.redirect("/admin");
-        } catch (dbError) {
-            console.error(dbError);
-            res.status(500).send("Database insert failed");
+            // 1️⃣ Obtenir le nom final
+            const getNameCmd = [
+                "yt-dlp",
+                "--get-filename",
+                "--restrict-filenames",
+                "-o", "%(title)s.mp3",
+                url
+            ];
+
+            const { stdout } = await execFileAsync(
+                getNameCmd[0],
+                getNameCmd.slice(1)
+            );
+
+            finalFileName = stdout.trim();
+
+            // 2️⃣ Télécharger
+            const downloadCmd = [
+                "yt-dlp",
+                "-f", "bestaudio",
+                "-x",
+                "--audio-format", "mp3",
+                "--restrict-filenames",
+                "-o", outputTemplate,
+                url
+            ];
+
+            await execFileAsync(
+                downloadCmd[0],
+                downloadCmd.slice(1)
+            );
+
+            console.log("✅ Download complete:", finalFileName);
         }
-    });
+
+        // ========================================
+        // CAS 2 : url = nom de fichier existant
+        // ========================================
+        else if (url) {
+            console.log("📥 Using existing file:", url[0]);
+            finalFileName = url[0];
+        }
+
+        // ========================================
+        // Sécurité : rien fourni
+        // ========================================
+        else {
+            return res.status(400).send("URL or filename required");
+        }
+
+        // ========================================
+        // Insertion BDD
+        // ========================================
+
+
+        console.log("Insert :", title, finalFileName, year, artist, cover);
+        await pool.query(
+            `INSERT INTO titles (titre, url, annee, fk_artiste, fk_cover)
+             VALUES (?, ?, ?, ?, ?)`,
+            [title, finalFileName, year, artist, cover]
+        );
+
+        console.log("✅ Title added successfully:", finalFileName);
+        res.redirect("/admin");
+
+    } catch (err) {
+        console.error("❌ Error:", err);
+        res.status(500).send("Add title failed");
+    }
 });
 
-app.get("/edit-title", async (req, res) => {
 
-    let id = req.query.id;
 
-    const [title] = await pool.query("SELECT * FROM titles WHERE id = ?", [id]);
+app.post("/edit-title/:id", async (req, res) => {
+    let { url, year, artist, cover } = req.body;
 
-    const [artistes] = await pool.query("select id, nom from artistes;");
-    const [covers] = await pool.query("select id, url from covers;");
+    artist = artist || null;
+    cover = cover || null;
+    year = year || null;
 
-    res.render("edit-title", { title: title[0], artistes, covers });
+    try {
+        // ========================================
+        // Récupérer l'ancien fichier
+        // ========================================
+        const [oldTitle] = await pool.query(
+            `SELECT url FROM titles WHERE id = ?`,
+            [req.params.id]
+        );
+
+        if (!oldTitle || oldTitle.length === 0) {
+            return res.status(404).send("Title not found");
+        }
+
+        const oldFileName = oldTitle[0].url;
+        const oldFilePath = path.join(musicFolder, oldFileName);
+
+        let finalFileName = oldFileName; // 👈 fallback par défaut
+
+        // ========================================
+        // CAS 1 : URL YouTube → télécharger
+        // ========================================
+        if (url && /^https?:\/\//i.test(url)) {
+            console.log("📥 Downloading from URL:", url);
+
+            const outputTemplate = path.join(
+                musicFolder,
+                "%(title)s.mp3"
+            );
+
+            // 1️⃣ Obtenir le nom final
+            const getNameCmd = [
+                "yt-dlp",
+                "--get-filename",
+                "--restrict-filenames",
+                "-o", "%(title)s.mp3",
+                url
+            ];
+
+            const { stdout } = await execFileAsync(
+                getNameCmd[0],
+                getNameCmd.slice(1)
+            );
+
+            finalFileName = stdout.trim();
+
+            // 2️⃣ Télécharger
+            const downloadCmd = [
+                "yt-dlp",
+                "-f", "bestaudio",
+                "-x",
+                "--audio-format", "mp3",
+                "--restrict-filenames",
+                "-o", outputTemplate,
+                url
+            ];
+
+            await execFileAsync(
+                downloadCmd[0],
+                downloadCmd.slice(1)
+            );
+
+            console.log("✅ Download complete:", finalFileName);
+
+            // 3️⃣ Supprimer l'ancien fichier
+            if (oldFileName !== finalFileName) {
+                try {
+                    await fs.access(oldFilePath);
+                    await fs.unlink(oldFilePath);
+                    console.log("🗑️ Old file deleted:", oldFileName);
+                } catch {
+                    console.warn("⚠️ Could not delete old file:", oldFileName);
+                }
+            }
+        }
+
+        // ========================================
+        // CAS 2 : url = nom de fichier manuel
+        // ========================================
+        else if (url && url !== oldFileName) {
+            finalFileName = url;
+        }
+
+        // ========================================
+        // Mise à jour BDD
+        // ========================================
+        await pool.query(
+            `UPDATE titles
+             SET url = ?, annee = ?, fk_artiste = ?, fk_cover = ?
+             WHERE id = ?`,
+            [finalFileName, year, artist, cover, req.params.id]
+        );
+
+        console.log("✅ Title updated successfully:", finalFileName);
+        res.redirect("/admin");
+
+    } catch (err) {
+        console.error("❌ Error:", err);
+        res.status(500).send("Update failed");
+    }
 });
 
 
+
+
+// Route pour supprimer un titre
+app.post("/delete-title/:id", async (req, res) => {
+    console.log("🗑️  Deleting title:", req.params.id);
+    try {
+        // Récupérer les infos du titre avant suppression
+        const [title] = await pool.query(
+            `SELECT url FROM titles WHERE id = ?`,
+            [req.params.id]
+        );
+
+        if (!title || title.length === 0) {
+            return res.status(404).send("Title not found");
+        }
+
+        const fileName = title[0].url;
+        const filePath = path.join(musicFolder, fileName);
+
+        // Supprimer de la base de données
+        await pool.query(
+            `DELETE FROM titles WHERE id = ?`,
+            [req.params.id]
+        );
+
+        console.log("✅ Title deleted from database");
+
+        // Supprimer le fichier audio
+        try {
+            await fs.access(filePath);
+            await fs.unlink(filePath);
+            console.log("🗑️  File deleted:", fileName);
+        } catch (err) {
+            console.warn("⚠️  Could not delete file:", fileName);
+        }
+
+        res.redirect("/admin");
+
+    } catch (error) {
+        console.error("❌ Delete error:", error);
+        res.status(500).send("Delete failed");
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Serveur lancé sur http://localhost:${PORT}`);
@@ -206,7 +512,15 @@ async function playTack() {
 
 async function getAllTitles() {
     try {
-        const [rows] = await pool.query("SELECT titles.id, COALESCE(titles.titre,'Unknown') AS titre,  COALESCE(titles.url,'') AS url,  COALESCE(titles.annee,'0000') AS annee,  COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover  FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste  LEFT JOIN covers ON covers.id = titles.fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit 4) AS last4);");
+
+        const nb = await pool.query("SELECT count(*) as nb FROM titles;");
+        const limit = (nb[0][0].nb) - 1;
+
+        const [rows] = await pool.query("SELECT titles.id, COALESCE(titles.titre,'Unknown') AS titre,  COALESCE(titles.url,'') AS url,  COALESCE(titles.annee,'0000') AS annee,  COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover  FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste  LEFT JOIN covers ON covers.id = titles.fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit ?) AS last);", [limit]);
+
+        console.log("_____________________ Limit Selected ________________________")
+        console.log(rows)
+        console.log("_____________________ ENDED Selected ________________________")
         allTitles = rows;
     } catch (err) {
         console.error("Erreur lors de la requête MySQL:", err);

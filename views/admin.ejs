@@ -99,7 +99,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
         opacity: 0;
         transition: opacity 0.3s ease;
     }
@@ -280,7 +280,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
         opacity: 0;
         transition: opacity 0.3s ease;
         pointer-events: none;
@@ -381,7 +381,8 @@
     }
 
     /* Info de la carte */
-    #name, .card-title {
+    #name,
+    .card-title {
         font-size: 18px;
         font-weight: 600;
         color: #ffffff;
@@ -392,7 +393,8 @@
         text-overflow: ellipsis;
     }
 
-    #artist, .card-artist {
+    #artist,
+    .card-artist {
         font-size: 14px;
         font-weight: 400;
         color: #666;
@@ -403,7 +405,8 @@
         text-overflow: ellipsis;
     }
 
-    #annee, .card-year {
+    #annee,
+    .card-year {
         font-size: 12px;
         font-weight: 300;
         color: #444;
@@ -498,7 +501,8 @@
             <p class="subtitle">Explore your collection</p>
             <div class="header-actions">
                 <button class="action-btn" id="addTitleBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="16"></line>
                         <line x1="8" y1="12" x2="16" y2="12"></line>
@@ -506,19 +510,34 @@
                     Add Title
                 </button>
                 <button class="action-btn" id="addArtistBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                     Add Artist
                 </button>
                 <button class="action-btn" id="addCoverBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                         <polyline points="21 15 16 10 5 21"></polyline>
                     </svg>
                     Add Cover
+                </button>
+                <button class="action-btn" id="history">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M2 12C2 17.5228 6.47715 22 12 22C13.8214 22 15.5291 21.513 17 20.6622M12 2C17.5228 2 22 6.47715 22 12C22 13.8214 21.513 15.5291 20.6622 17"
+                            stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" />
+                        <path d="M12 9V13H16" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path
+                            d="M17 20.6622C15.5291 21.513 13.8214 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 13.8214 21.513 15.5291 20.6622 17"
+                            stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.5 3.5" />
+                    </svg>
+                    History
                 </button>
             </div>
         </div>
@@ -526,7 +545,8 @@
         <!-- Filtres et recherche -->
         <div class="filters-container">
             <div class="search-wrapper">
-                <input type="text" class="search-input" id="searchInput" placeholder="Search by title, artist or year...">
+                <input type="text" class="search-input" id="searchInput"
+                    placeholder="Search by title, artist or year...">
             </div>
 
             <div class="filters-row">
@@ -554,32 +574,44 @@
 
         <!-- Grid des cartes -->
         <div class="grid-card" id="gridContainer">
-            <% allTitles.forEach(t => { %>
-                <a href="/show-title/<%= t.id %>" class="card" data-title="<%= t.titre.toLowerCase() %>" data-artist="<%= t.artiste.toLowerCase() %>" data-year="<%= t.annee %>" data-id="<%= t.id %>">
+            <% allTitles.forEach(t=> { %>
+                <a href="/show-title/<%= t.id %>" class="card" data-title="<%= t.titre.toLowerCase() %>"
+                    data-artist="<%= t.artiste.toLowerCase() %>" data-year="<%= t.annee %>" data-id="<%= t.id %>">
                     <div class="card-image-wrapper">
                         <img src="../Covers/<%= t.cover %>" alt="<%= t.titre %>">
                         <div class="card-actions">
                             <button class="card-action-btn edit-btn" onclick="editTrack(event, '<%= t.id %>')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                 </svg>
                             </button>
-                            <button class="card-action-btn delete-btn" onclick="deleteTrack(event, '<%= t.id %>', '<%= t.titre %>')">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <button class="card-action-btn delete-btn"
+                                onclick="deleteTrack(event, '<%= t.id %>', '<%= t.titre %>')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
                                     <line x1="10" y1="11" x2="10" y2="17"></line>
                                     <line x1="14" y1="11" x2="14" y2="17"></line>
                                 </svg>
                             </button>
                         </div>
                     </div>
-                    <span class="card-title"><%= t.titre %></span>
-                    <span class="card-artist"><%= t.artiste  %></span>
-                    <span class="card-year"><%= t.annee %></span>
+                    <span class="card-title">
+                        <%= t.titre %>
+                    </span>
+                    <span class="card-artist">
+                        <%= t.artiste %>
+                    </span>
+                    <span class="card-year">
+                        <%= t.annee %>
+                    </span>
                 </a>
-            <% }) %>
+                <% }) %>
         </div>
 
         <!-- Message si vide -->
@@ -593,13 +625,13 @@
         // ============================================
         // DONNÉES
         // ============================================
-        
+
         let allTitles = [];
 
         // ============================================
         // VARIABLES GLOBALES
         // ============================================
-        
+
         let filteredTitles = [...allTitles];
         let currentSort = 'default';
 
@@ -619,10 +651,10 @@
         function editTrack(event, trackId) {
             event.preventDefault();
             event.stopPropagation();
-            
+
             // Rediriger vers la page d'édition
-            window.location.href = `/edit-title?id=${trackId}`;
-            
+            window.location.href = `/edit-title/${trackId}`;
+
             // OU ouvrir un modal d'édition
             // openEditModal(trackId);
         }
@@ -631,36 +663,36 @@
         function deleteTrack(event, trackId, trackTitle) {
             event.preventDefault();
             event.stopPropagation();
-            
+
             // Demander confirmation
             if (confirm(`Are you sure you want to delete "${trackTitle}"?`)) {
                 // Envoyer la requête de suppression
                 fetch(`/delete-title/${trackId}`, {
-                    method: 'DELETE',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 })
-                .then(response => {
-                    if (response.ok) {
-                        // Supprimer la carte du DOM
-                        const card = document.querySelector(`[data-id="${trackId}"]`);
-                        if (card) {
-                            card.style.animation = 'fadeOut 0.3s ease';
-                            setTimeout(() => {
-                                card.remove();
-                                // Mettre à jour les données
-                                updateDataAfterDelete(trackId);
-                            }, 300);
+                    .then(response => {
+                        if (response.ok) {
+                            // Supprimer la carte du DOM
+                            const card = document.querySelector(`[data-id="${trackId}"]`);
+                            if (card) {
+                                card.style.animation = 'fadeOut 0.3s ease';
+                                setTimeout(() => {
+                                    card.remove();
+                                    // Mettre à jour les données
+                                    updateDataAfterDelete(trackId);
+                                }, 300);
+                            }
+                        } else {
+                            alert('Error deleting track. Please try again.');
                         }
-                    } else {
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
                         alert('Error deleting track. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error deleting track. Please try again.');
-                });
+                    });
             }
         }
 
@@ -668,11 +700,11 @@
         function updateDataAfterDelete(trackId) {
             allTitles = allTitles.filter(t => t.id !== trackId);
             filteredTitles = filteredTitles.filter(t => t.id !== trackId);
-            
+
             // Mettre à jour les stats
             totalTracksEl.textContent = allTitles.length;
             showingTracksEl.textContent = filteredTitles.length;
-            
+
             // Afficher l'état vide si nécessaire
             if (allTitles.length === 0) {
                 gridContainer.style.display = 'none';
@@ -697,7 +729,7 @@
             } else {
                 gridContainer.style.display = 'grid';
                 emptyState.style.display = 'none';
-                
+
                 // Afficher seulement les cartes filtrées dans l'ordre
                 tracks.forEach(track => {
                     const card = allCards.find(c => {
@@ -721,8 +753,8 @@
         // Trier les tracks
         function sortTracks(tracks, sortType) {
             const sorted = [...tracks];
-            
-            switch(sortType) {
+
+            switch (sortType) {
                 case 'title':
                     return sorted.sort((a, b) => a.titre.localeCompare(b.titre));
                 case 'artist':
@@ -739,11 +771,11 @@
         // Filtrer les tracks
         function filterTracks(searchTerm) {
             const term = searchTerm.toLowerCase().trim();
-            
+
             if (term === '') {
                 filteredTitles = [...allTitles];
             } else {
-                filteredTitles = allTitles.filter(track => 
+                filteredTitles = allTitles.filter(track =>
                     track.titre.toLowerCase().includes(term) ||
                     track.artiste.toLowerCase().includes(term) ||
                     track.annee.includes(term)
@@ -770,7 +802,7 @@
                 filterBtns.forEach(b => b.classList.remove('active'));
                 // Ajouter active au cliqué
                 btn.classList.add('active');
-                
+
                 currentSort = btn.dataset.sort;
                 const sorted = sortTracks(filteredTitles, currentSort);
                 renderCards(sorted);
@@ -781,11 +813,11 @@
         clearFiltersBtn.addEventListener('click', () => {
             searchInput.value = '';
             currentSort = 'default';
-            
+
             // Reset active button
             filterBtns.forEach(b => b.classList.remove('active'));
             filterBtns[0].classList.add('active');
-            
+
             filteredTitles = [...allTitles];
             renderCards(filteredTitles);
         });
@@ -803,13 +835,17 @@
             window.location.href = '/add-cover';
         });
 
+        document.getElementById("history").addEventListener("click", () => {
+            window.location.href = '/history/1';
+        })
+
         // ============================================
         // INITIALISATION
         // ============================================
 
         // Récupérer toutes les cartes déjà rendues par EJS
         const allCards = Array.from(document.querySelectorAll('.card'));
-        
+
         // Construire le tableau allTitles à partir des cartes DOM
         allTitles = allCards.map(card => ({
             id: card.getAttribute('data-id'),
@@ -829,7 +865,7 @@
         // ============================================
         // ANIMATION CSS POUR LA SUPPRESSION
         // ============================================
-        
+
         const style = document.createElement('style');
         style.textContent = `
             @keyframes fadeOut {
@@ -848,22 +884,22 @@
         // ============================================
         // SYSTÈME DE PARTICULES CANVAS
         // ============================================
-        
+
         const canvas = document.getElementById('particleCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-        
+
         class Particle {
             constructor() {
                 this.reset();
             }
-            
+
             reset() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
@@ -873,15 +909,15 @@
                 this.opacity = Math.random() * 0.5 + 0.2;
                 this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
             }
-            
+
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-                
+
                 if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
                 if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
             }
-            
+
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.globalAlpha = this.opacity;
@@ -890,7 +926,7 @@
                 ctx.fill();
             }
         }
-        
+
         const particles = [];
         var particleCount;
 
@@ -909,21 +945,21 @@
         } else {
             particleCount = 700;
         }
-        
+
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle());
         }
-        
+
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             ctx.globalAlpha = 0.1;
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
                     const dx = particles[i].x - particles[j].x;
                     const dy = particles[i].y - particles[j].y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    
+
                     if (distance < 120) {
                         ctx.strokeStyle = '#666666';
                         ctx.lineWidth = 0.5;
@@ -934,15 +970,15 @@
                     }
                 }
             }
-            
+
             particles.forEach(particle => {
                 particle.update();
                 particle.draw();
             });
-            
+
             requestAnimationFrame(animateParticles);
         }
-        
+
         animateParticles();
     </script>
 </body>
