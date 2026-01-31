@@ -11,10 +11,11 @@ import fs from "fs/promises";
 
 
 const pool = mysql.createPool({
-    host: 'localhost',
+    host: '88.189.251.90',
     user: 'radio_user',
-    password: 'radio_password_123',
+    password: 'radio@R12mdp',
     database: 'radio',
+    port: 21336,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -29,9 +30,9 @@ const coversFolder = path.join(__dirname, "Covers");
 const execFileAsync = promisify(execFile);
 
 const app = express();
-const PORT = 3000;
+const PORT = 21900;
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: 21901 });
 var allTitles;
 
 var currentTrack = {};
@@ -118,8 +119,9 @@ app.get("/history/:page", async (req, res) => {
 
 
     const [rows] = await pool.query(
-        `SELECT h.id, titre, t.id as titre_id, duree, annee, c.url as cover, nom as artist, played_at 
+        `SELECT h.id, titre, t.id as titre_id, duree, annee, status, c.url as cover, nom as artist, played_at 
          FROM history h  
+         join status s on s.id = h.fk_status
          JOIN titles t ON t.id = h.fk_title 
          JOIN covers c ON c.id = t.fk_cover 
          JOIN artistes a ON a.id = t.fk_artiste 
@@ -147,8 +149,9 @@ app.get("/api/history/:page", async (req, res) => {
     const offset = (page - 1) * limit;
 
     const [rows] = await pool.query(
-        `SELECT h.id, titre, t.id as titre_id, duree, annee, c.url as cover, nom as artist, played_at 
+        `SELECT h.id, titre, t.id as titre_id, duree, annee, status, c.url as cover, nom as artist, played_at 
          FROM history h  
+         join status s on s.id = h.fk_status
          JOIN titles t ON t.id = h.fk_title 
          JOIN covers c ON c.id = t.fk_cover 
          JOIN artistes a ON a.id = t.fk_artiste 
@@ -165,6 +168,27 @@ app.get("/api/history/:page", async (req, res) => {
         totalCount: totalCount
     });
 });
+
+app.get("/add-artist", async (req, res) => {
+
+    const [artists] = await pool.query("select nom from artistes;");
+
+    res.render("add-artist", { artists });
+})
+
+app.get("/add-cover", async (req, res) => {
+
+    const [covers] = await pool.query("select url from covers;");
+
+    res.render("add-cover", { covers });
+})
+
+app.post("/add-artist", async (req, res) => {
+    console.log("📥 Adding artist:", req.body);
+    const { artist } = req.body;
+    await pool.query("INSERT INTO artistes (nom) VALUES (?)", [artist]);
+    res.redirect("/admin");
+})
 
 
 app.post("/add-title", async (req, res) => {
@@ -201,6 +225,7 @@ app.post("/add-title", async (req, res) => {
                 "yt-dlp",
                 "--get-filename",
                 "--restrict-filenames",
+                "--js-runtimes", "node",
                 "-o", "%(title)s.mp3",
                 url
             ];
@@ -215,13 +240,18 @@ app.post("/add-title", async (req, res) => {
             // 2️⃣ Télécharger
             const downloadCmd = [
                 "yt-dlp",
-                "-f", "bestaudio",
-                "-x",
-                "--audio-format", "mp3",
-                "--restrict-filenames",
+                "-f", "bestaudio/best",                // Meilleur audio disponible (souvent opus ou aac → converti en mp3 après)
+                "-x",                                  // Extraire l'audio seulement
+                "--audio-format", "mp3",               // Convertir en MP3
+                "--restrict-filenames",                // Noms de fichiers safe (pas de caractères spéciaux)
+                "--js-runtimes", "node",               // Utilise Node.js pour le JS runtime (si installé)
+                "--no-playlist",                       // Pas de playlists (seulement la vidéo unique)
+                "--ignore-errors",                     // Continue même si erreur mineure
+                "--extractor-args", "youtube:player_client=default,-android_sdkless",  // Fix principal SABR/403 en 2026
                 "-o", outputTemplate,
                 url
             ];
+
 
             await execFileAsync(
                 downloadCmd[0],
@@ -466,23 +496,34 @@ async function main() {
 async function newTrack() {
 
     await getAllTitles();
-
     let x = Math.floor(Math.random() * allTitles.length);
     let track = allTitles[x];
-    console.log(path.join(musicFolder, track.url));
-    let duration = Math.floor((await parseFile(path.join(musicFolder, track.url))).format.duration);
-    let lineColor = await getAverageColor(path.join(coversFolder, track.cover));
-
     currentTrack.trackInfo = track;
-    currentTrack.duration = duration;
-    currentTrack.lineColor = lineColor;
 
-    playTack();
+    if (await fileExists(path.join(musicFolder, track.url))) {
+        console.log(path.join(musicFolder, track.url));
+        let duration = Math.floor((await parseFile(path.join(musicFolder, track.url))).format.duration);
+        let lineColor = await getAverageColor(path.join(coversFolder, track.cover));
+
+        currentTrack.duration = duration;
+        currentTrack.lineColor = lineColor;
+
+        playTack();
+    } else {
+        console.log('File does not exist');
+
+        pool.query("INSERT INTO history (fk_title, fk_status) VALUES (?, ?)", [currentTrack.trackInfo.id, 2]);
+
+        newTrack();
+    }
+
 }
 
 async function playTack() {
     // console.log(currentTrack);
     console.log('FUNCTION playTack');
+
+
 
     pool.query("INSERT INTO history (fk_title) VALUES (?)", [currentTrack.trackInfo.id]);
     currentTrack.playedAt = nowMySQLms();
@@ -576,4 +617,14 @@ export async function getAverageColor(imagePath) {
             .map(v => v.toString(16).padStart(2, "0"))
             .join("")
     );
+
+}
+
+async function fileExists(filePath) {
+    try {
+        await fs.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
 }

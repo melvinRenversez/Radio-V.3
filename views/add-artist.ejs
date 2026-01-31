@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Artiste - RadioMel</title>
+</head>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    min-height: 100vh;
+    background: #0a0a0a;
+    font-family: 'Inter', sans-serif;
+    color: #fff;
+    position: relative;
+    overflow-x: hidden;
+    padding: 40px 20px;
+  }
+
+  /* Canvas particules */
+  #particleCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Container principal */
+  .main-container {
+    max-width: 760px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    color: #666;
+  }
+
+  .header-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    padding: 14px 28px;
+    background: #12121155;
+    backdrop-filter: blur(10px);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .action-btn:hover {
+    background: #1f1f1f;
+    border-color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .btn-icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+  }
+
+  /* Form card */
+  .form-card {
+    background: #12121155;
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 40px;
+    border: 1px solid #1e1e1e;
+    margin-bottom: 32px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 18px 20px 18px 52px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.3s ease;
+    letter-spacing: 0.2px;
+  }
+
+  .form-input::placeholder {
+    color: #444;
+  }
+
+  .form-input:focus {
+    border-color: #fff;
+    background: #1f1f1f;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    stroke: #444;
+    stroke-width: 2;
+    pointer-events: none;
+    transition: stroke 0.3s ease;
+  }
+
+  .form-input:focus~.input-icon,
+  .input-wrapper:focus-within .input-icon {
+    stroke: #fff;
+  }
+
+  /* Character count */
+  .input-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .char-count {
+    font-size: 12px;
+    color: #444;
+  }
+
+  .char-count.warning {
+    color: #e8774d;
+  }
+
+  /* Submit btn */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: #fff;
+    border: none;
+    border-radius: 16px;
+    color: #0a0a0a;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .submit-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+  }
+
+  /* Spinner */
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid #0a0a0a;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+
+  .submit-btn.loading .spinner {
+    display: block;
+  }
+
+  .submit-btn.loading .btn-text {
+    display: none;
+  }
+
+  .submit-btn.loading .btn-icon-submit {
+    display: none;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Similarity panel */
+  .similarity-panel {
+    margin-top: 28px;
+    display: none;
+  }
+
+  .similarity-panel.visible {
+    display: block;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .similarity-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .similarity-header svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+  }
+
+  .similarity-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .similarity-count {
+    font-size: 11px;
+    color: #444;
+    background: #1a1a1a;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: auto;
+  }
+
+  .similarity-divider {
+    height: 1px;
+    background: linear-gradient(90deg, #2a2a2a 0%, transparent 100%);
+    margin-bottom: 14px;
+  }
+
+  /* Similarity item */
+  .similarity-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #1a1a1a;
+    margin-bottom: 8px;
+    transition: all 0.25s ease;
+    cursor: default;
+  }
+
+  .similarity-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .similarity-item:hover {
+    background: #222;
+  }
+
+  .similarity-item.exact-match {
+    border: 1px solid #e8774d55;
+    background: #1a1210;
+  }
+
+  .similarity-item.exact-match:hover {
+    background: #221a17;
+  }
+
+  .sim-rank {
+    font-size: 11px;
+    font-weight: 700;
+    color: #444;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .sim-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Score bar */
+  .sim-score-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .sim-bar-bg {
+    width: 80px;
+    height: 4px;
+    background: #2a2a2a;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .sim-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .sim-bar-fill.high {
+    background: #e8774d;
+  }
+
+  .sim-bar-fill.medium {
+    background: #e8a84d;
+  }
+
+  .sim-bar-fill.low {
+    background: #4d9e6b;
+  }
+
+  .sim-score-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .sim-score-text.high {
+    color: #e8774d;
+  }
+
+  .sim-score-text.medium {
+    color: #e8a84d;
+  }
+
+  .sim-score-text.low {
+    color: #4d9e6b;
+  }
+
+  /* Exact match warning badge */
+  .exact-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #e8774d;
+    background: #e8774d15;
+    padding: 4px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+
+  .exact-badge svg {
+    width: 12px;
+    height: 12px;
+    stroke: #e8774d;
+    stroke-width: 2.5;
+  }
+
+  /* No match state */
+  .no-match {
+    text-align: center;
+    padding: 24px 16px;
+    color: #4d9e6b;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .no-match svg {
+    width: 18px;
+    height: 18px;
+    stroke: #4d9e6b;
+    stroke-width: 2;
+  }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: #1f1f1f;
+    border: 1px solid #2a2a2a;
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 16px 28px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    z-index: 100;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .toast.success {
+    border-color: #4d9e6b55;
+  }
+
+  .toast.error {
+    border-color: #e8774d55;
+  }
+
+  .toast svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+    flex-shrink: 0;
+  }
+
+  .toast.success svg {
+    stroke: #4d9e6b;
+  }
+
+  .toast.error svg {
+    stroke: #e8774d;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .similarity-item {
+    animation: fadeInUp 0.3s ease backwards;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    h1 {
+      font-size: 36px;
+    }
+
+    .form-card {
+      padding: 28px 20px;
+    }
+
+    .form-input {
+      font-size: 16px;
+      padding: 16px 18px 16px 48px;
+    }
+
+    .sim-bar-bg {
+      width: 56px;
+    }
+
+    .toast {
+      bottom: 20px;
+      padding: 14px 22px;
+      font-size: 14px;
+    }
+  }
+</style>
+
+<body>
+  <canvas id="particleCanvas"></canvas>
+
+  <div class="main-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Add Artiste</h1>
+      <p class="subtitle">Ajouter un nouvel artiste à votre bibliothèque</p>
+      <div class="header-actions">
+        <a href="/" class="action-btn">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Back to Library
+        </a>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-card">
+      <label class="form-label">Nom de l'artiste</label>
+      <div class="input-wrapper">
+        <input type="text" class="form-input" id="artistInput" placeholder="Ex. Lone Assembly" autocomplete="off" maxlength="64">
+        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+        </svg>
+      </div>
+      <div class="input-footer">
+        <span class="char-count" id="charCount">0 / 64</span>
+      </div>
+
+      <!-- Similarity results -->
+      <div class="similarity-panel" id="similarityPanel">
+        <div class="similarity-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span class="similarity-title">Similarités détectées</span>
+          <span class="similarity-count" id="simCount">0 résultat</span>
+        </div>
+        <div class="similarity-divider"></div>
+        <div id="similarityList"></div>
+      </div>
+
+      <!-- Submit -->
+      <button class="submit-btn" id="submitBtn" disabled>
+        <span class="spinner"></span>
+        <svg class="btn-icon-submit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span class="btn-text">Ajouter l'artiste</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" id="toastIcon">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toastText"></span>
+  </div>
+
+  <script>
+    // ============================================
+    // DONNÉES DU SERVEUR (EJS)
+    // ============================================
+    // Remplacez cette ligne par : let artists = <%- JSON.stringify(artists) %>;
+    let artists = <%- JSON.stringify(artists) %>
+
+    // ============================================
+    // SIMILARITÉ — Algorithme Levenshtein + scoring
+    // ============================================
+
+    function levenshtein(a, b) {
+      const m = a.length,
+        n = b.length;
+      const dp = Array.from({
+        length: m + 1
+      }, () => Array(n + 1).fill(0));
+
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1,
+            dp[i][j - 1] + 1,
+            dp[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return dp[m][n];
+    }
+
+    function normalize(str) {
+      return str.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ');
+    }
+
+    function computeSimilarity(input, artistName) {
+      const a = normalize(input);
+      const b = normalize(artistName);
+
+      if (a === '' || b === '') return 0;
+
+      // Exact match (après normalisation)
+      if (a === b) return 100;
+
+      const maxLen = Math.max(a.length, b.length);
+      const dist = levenshtein(a, b);
+      const baseScore = Math.round(((maxLen - dist) / maxLen) * 100);
+
+      // Bonus si l'un contient l'autre
+      let bonus = 0;
+      if (a.includes(b) || b.includes(a)) {
+        bonus = 12;
+      }
+
+      // Bonus si même premier mot
+      const wordsA = a.split(' ');
+      const wordsB = b.split(' ');
+      if (wordsA[0] === wordsB[0] && wordsA[0].length > 2) {
+        bonus += 8;
+      }
+
+      return Math.min(100, baseScore + bonus);
+    }
+
+    function findSimilarArtists(input) {
+      if (normalize(input) === '') return [];
+
+      const results = artists
+        .map(artist => ({
+          nom: artist.nom,
+          score: computeSimilarity(input, artist.nom),
+          isExact: normalize(input) === normalize(artist.nom)
+        }))
+        .filter(r => r.score >= 40)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      return results;
+    }
+
+    // ============================================
+    // UI — Render similarités
+    // ============================================
+
+    function getScoreClass(score) {
+      if (score >= 80) return 'high';
+      if (score >= 55) return 'medium';
+      return 'low';
+    }
+
+    function renderSimilarities(results) {
+      const panel = document.getElementById('similarityPanel');
+      const list = document.getElementById('similarityList');
+      const countEl = document.getElementById('simCount');
+
+      if (results.length === 0) {
+        panel.classList.remove('visible');
+        return;
+      }
+
+      panel.classList.add('visible');
+      countEl.textContent = results.length + (results.length === 1 ? ' résultat' : ' résultats');
+      list.innerHTML = '';
+
+      results.forEach((item, i) => {
+        const cls = getScoreClass(item.score);
+        const exactHtml = item.isExact ?
+          `<div class="exact-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        Doublon exact
+                    </div>` :
+          '';
+
+        const el = document.createElement('div');
+        el.className = 'similarity-item' + (item.isExact ? ' exact-match' : '');
+        el.style.animationDelay = `${i * 0.06}s`;
+        el.innerHTML = `
+                    <span class="sim-rank">${i + 1}</span>
+                    <span class="sim-name">${item.nom}</span>
+                    ${exactHtml}
+                    <div class="sim-score-wrap">
+                        <div class="sim-bar-bg">
+                            <div class="sim-bar-fill ${cls}" style="width: ${item.score}%"></div>
+                        </div>
+                        <span class="sim-score-text ${cls}">${item.score}%</span>
+                    </div>
+                `;
+        list.appendChild(el);
+      });
+    }
+
+    // ============================================
+    // INPUT — Écoute en temps réel
+    // ============================================
+
+    const input = document.getElementById('artistInput');
+    const charCount = document.getElementById('charCount');
+    const submitBtn = document.getElementById('submitBtn');
+
+    let debounceTimer = null;
+
+    input.addEventListener('input', () => {
+      const val = input.value;
+      const len = val.length;
+
+      // Char count
+      charCount.textContent = `${len} / 64`;
+      charCount.classList.toggle('warning', len > 50);
+
+      // Submit button
+      submitBtn.disabled = val.trim().length === 0;
+
+      // Debounce la recherche de similarité
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const results = findSimilarArtists(val);
+        renderSimilarities(results);
+      }, 180);
+    });
+
+    // ============================================
+    // SUBMIT
+    // ============================================
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toastText');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toast.className = 'toast ' + type;
+      toastText.textContent = message;
+
+      if (type === 'success') {
+        toastIcon.innerHTML = `<polyline points="20 6 9 17 4 12"></polyline>`;
+      } else {
+        toastIcon.innerHTML = `
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                `;
+      }
+
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      const val = input.value.trim();
+      if (!val) return;
+
+      // Check doublon exact
+      const exactMatch = artists.find(a => normalize(a.nom) === normalize(val));
+      if (exactMatch) {
+        showToast(`"${exactMatch.nom}" existe déjà.`, 'error');
+        return;
+      }
+
+      // Simulate POST /api/add-artiste
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+
+      fetch("/add-artist", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            artist: val
+          })
+        })
+        .then(() => {
+          window.location.href = "/admin";
+        });
+
+      // Simule succès
+      artists.push({
+        nom: val
+      });
+      showToast(`"${val}" a été ajouté avec succès.`, 'success');
+
+      // Reset
+      input.value = '';
+      charCount.textContent = '0 / 64';
+      charCount.classList.remove('warning');
+      submitBtn.disabled = true;
+      submitBtn.classList.remove('loading');
+      document.getElementById('similarityPanel').classList.remove('visible');
+    });
+
+    // ============================================
+    // PARTICULES CANVAS (même système que history)
+    // ============================================
+
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.speedY = (Math.random() - 0.5) * 0.5;
+        this.opacity = Math.random() * 0.5 + 0.2;
+        this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+      }
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.opacity;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    const particles = [];
+    let particleCount;
+    if (window.innerWidth < 400) particleCount = 50;
+    else if (window.innerWidth < 600) particleCount = 100;
+    else if (window.innerWidth < 900) particleCount = 150;
+    else if (window.innerWidth < 1200) particleCount = 250;
+    else if (window.innerWidth < 1600) particleCount = 350;
+    else if (window.innerWidth < 2000) particleCount = 550;
+    else particleCount = 700;
+
+    for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.globalAlpha = 0.1;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 120) {
+            ctx.strokeStyle = '#666666';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+  </script>
+</body>
+
+</html>

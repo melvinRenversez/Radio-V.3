@@ -45,12 +45,29 @@ CREATE TABLE history (
     id        INTEGER PRIMARY KEY AUTO_INCREMENT,
     fk_title  INTEGER NOT NULL,
     played_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    fk_status INTEGER NOT NULL DEFAULT 1,
     
     CONSTRAINT fk_history_title
         FOREIGN KEY (fk_title)
         REFERENCES titles(id)
+        ON DELETE cascade,
+
+    CONSTRAINT fk_history_status
+        FOREIGN KEY (fk_status)
+        REFERENCES status(id)
         ON DELETE cascade
 );
+
+drop table status;
+CREATE TABLE status (
+    id      INTEGER PRIMARY KEY AUTO_INCREMENT,
+    status  TEXT NOT NULL
+);
+
+insert into status(status)values
+("played"),
+("url not found");
+
 
 insert into artistes(nom)values
 ("Lone Assembly");
@@ -69,8 +86,13 @@ select * from artistes;
 
 select * from covers;
 
-select * from titles
-;
+select * from titles;
+
+select * from history h
+join status s on s.id = h.fk_status
+order by id desc;
+
+select * from status;
 
 select titles.id, titles.titre, titles.url, titles.annee, artistes.nom as artiste, covers.url as cover from titles
 join artistes on artistes.id = fk_artiste

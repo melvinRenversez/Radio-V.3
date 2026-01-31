@@ -390,7 +390,7 @@
         }
 
         console.log('Tentative de connexion au serveur WebSocket...');
-        ws = new WebSocket(`ws://${IP}:8080`);
+        ws = new WebSocket(`ws://${IP}:21901`);
 
         ws.onopen = () => {
             console.log('✅ Connecté au serveur WebSocket');
