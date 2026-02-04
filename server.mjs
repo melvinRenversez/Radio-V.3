@@ -38,6 +38,7 @@ var allTitles;
 var currentTrack = {};
 var currentTimeTrack = 0;
 var interval;
+var totalListeners = 0;
 
 main();
 
@@ -464,6 +465,9 @@ wss.on('connection', (ws) => {
     console.log('$[WSS] Client connected');
     console.log('$[WSS]');
 
+    totalListeners++;
+    broadcastListeners();
+
     ws.send(JSON.stringify({ currentTrack }));
 
     ws.on('message', (message) => {
@@ -473,6 +477,12 @@ wss.on('connection', (ws) => {
             }
         });
     });
+
+    ws.on('close', () => {
+        totalListeners--;
+        broadcastListeners();
+        console.log('$[WSS] Client disconnected');
+    });
 });
 
 function broadcastTrack() {
@@ -480,6 +490,15 @@ function broadcastTrack() {
     wss.clients.forEach(client => {
         if (client.readyState === 1) {
             client.send(JSON.stringify({ currentTrack }));
+        }
+    });
+}
+
+function broadcastListeners() {
+    console.log('Broadcasting listeners');
+    wss.clients.forEach(client => {
+        if (client.readyState === 1) {
+            client.send(JSON.stringify({ totalListeners }));
         }
     });
 }
@@ -537,13 +556,15 @@ async function playTack() {
                 newTrack();
                 clearInterval(interval);
             } else {
-                console.log("Music is playing...");
-                console.log("Title: " + currentTrack.trackInfo.titre);
-                console.log("Time left: " + (currentTrack.duration - currentTimeTrack) + " / " + currentTrack.duration);
-                let timeMinSec = Math.floor((currentTrack.duration) / 60) + ":" + (currentTrack.duration) % 60;
-                console.log("Current time: " + currentTimeTrack + "/" + timeMinSec);
-                console.log("Precise time: " + (new Date(nowMySQLms()) - new Date(currentTrack.playedAt)));
-                console.log("Played at: " + currentTrack.playedAt);
+                // console.log("Music is playing...");
+                // console.log("Title: " + currentTrack.trackInfo.titre);
+                // console.log("Time left: " + (currentTrack.duration - currentTimeTrack) + " / " + currentTrack.duration);
+                // let timeMinSec = Math.floor((currentTrack.duration) / 60) + ":" + (currentTrack.duration) % 60;
+                // console.log("Current time: " + currentTimeTrack + "/" + timeMinSec);
+                // console.log("Precise time: " + (new Date(nowMySQLms()) - new Date(currentTrack.playedAt)));
+                // console.log("Played at: " + currentTrack.playedAt);
+
+                console.log("Total listeners: " + totalListeners);
             }
 
         },

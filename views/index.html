@@ -2,657 +2,690 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RadioMel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RadioMel</title>
 </head>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-        body {
-            min-height: 100vh;
-            /* background: #0a0a0a; */
+  body {
+    min-height: 100vh;
+    /* background: #0a0a0a; */
 
-            background: linear-gradient(145deg, #0a0a0a, #222222);
+    background: linear-gradient(145deg, #0a0a0a, #222222);
 
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Inter', sans-serif;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-        }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
 
-        /* Canvas pour les particules */
-        #particleCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
+  /* Canvas pour les particules */
+  #particleCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
 
-        /* Container principal */
-        .container {
-            width: 480px;
-            padding: 48px;
-            background: #12121255;
-            backdrop-filter: blur(2px);
-            border-radius: 32px;
-            position: relative;
-            z-index: 1;
-        }
+  /* Container principal */
+  .container {
+    width: 480px;
+    padding: 48px;
+    background: #12121255;
+    backdrop-filter: blur(2px);
+    border-radius: 32px;
+    position: relative;
+    z-index: 1;
+  }
 
-        /* Pochette */
-        .pochette {
-            width: 100%;
-            aspect-ratio: 1;
-            margin-bottom: 32px;
-            border-radius: 20px;
-            overflow: hidden;
-            background: #1a1a1a;
-        }
+  /* Pochette */
+  .pochette {
+    width: 100%;
+    aspect-ratio: 1;
+    margin-bottom: 32px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
 
-        #pochette {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+  #pochette {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-        /* Info du morceau */
-        .info-container {
-            margin-bottom: 32px;
-        }
+  /* Info du morceau */
+  .info-container {
+    margin-bottom: 32px;
+  }
 
-        #name {
-            font-size: 24px;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 8px;
-            display: block;
-        }
+  #name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 8px;
+    display: block;
+  }
 
-        #artist {
-            font-size: 16px;
-            font-weight: 400;
-            color: #666;
-            display: block;
-            margin-bottom: 4px;
-        }
+  #artist {
+    font-size: 16px;
+    font-weight: 400;
+    color: #666;
+    display: block;
+    margin-bottom: 4px;
+  }
 
-        #annee {
-            font-size: 14px;
-            font-weight: 300;
-            color: #444;
-            display: block;
-        }
+  #annee {
+    font-size: 14px;
+    font-weight: 300;
+    color: #444;
+    display: block;
+  }
 
-        /* Barre de progression */
-        .progress-wrapper {
-            margin-bottom: 24px;
-        }
+  /* Barre de progression */
+  .progress-wrapper {
+    margin-bottom: 24px;
+  }
 
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #1a1a1a;
-            border-radius: 2px;
-            position: relative;
-            cursor: pointer;
-            margin-bottom: 8px;
-        }
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
 
-        .progress-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: #fff;
-            width: var(--progress, 0%);
-            border-radius: 2px;
-            transition: width 0.1s linear;
-        }
+  .progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #fff;
+    width: var(--progress, 0%);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
 
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #666;
-            font-weight: 400;
-        }
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+    font-weight: 400;
+  }
 
-        /* Contrôles */
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 24px;
-            margin-bottom: 32px;
-        }
+  /* Contrôles */
+  .controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
 
-        .play-button {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: #fff;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            transition: transform 0.2s ease;
-            flex-shrink: 0;
-        }
+  .play-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
 
-        .play-button:hover {
-            transform: scale(1.05);
-        }
+  .play-button:hover {
+    transform: scale(1.05);
+  }
 
-        .play-button:active {
-            transform: scale(0.95);
-        }
+  .play-button:active {
+    transform: scale(0.95);
+  }
 
-        /* Icône Play */
-        .play-button.paused::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 52%;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 10px 0 10px 16px;
-            border-color: transparent transparent transparent #0a0a0a;
-            transform: translate(-50%, -50%);
-        }
+  /* Icône Play */
+  .play-button.paused::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 52%;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 0 10px 16px;
+    border-color: transparent transparent transparent #0a0a0a;
+    transform: translate(-50%, -50%);
+  }
 
-        /* Icône Pause */
-        .play-button.playing::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 4px;
-            height: 20px;
-            background: #0a0a0a;
-            transform: translate(-150%, -50%);
-            box-shadow: 10px 0 0 #0a0a0a;
-        }
+  /* Icône Pause */
+  .play-button.playing::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 20px;
+    background: #0a0a0a;
+    transform: translate(-150%, -50%);
+    box-shadow: 10px 0 0 #0a0a0a;
+  }
 
-        /* Audio caché */
-        audio {
-            display: none;
-        }
+  /* Audio caché */
+  audio {
+    display: none;
+  }
 
-        /* Wave animation simple */
-        .wave-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 3px;
-            height: 40px;
-        }
+  /* Wave animation simple */
+  .wave-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    height: 40px;
+  }
 
-        .wave-bar {
-            width: 3px;
-            background: #333;
-            border-radius: 2px;
-            animation: wave 1.2s ease-in-out infinite;
-            animation-play-state: var(--animation-state, paused);
-        }
+  .wave-bar {
+    width: 3px;
+    background: #333;
+    border-radius: 2px;
+    animation: wave 1.2s ease-in-out infinite;
+    animation-play-state: var(--animation-state, paused);
+  }
 
-        .wave-bar:nth-child(1) { animation-delay: 0s; height: 12px; }
-        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
-        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 28px; }
-        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 20px; }
-        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 12px; }
+  .wave-bar:nth-child(1) {
+    animation-delay: 0s;
+    height: 12px;
+  }
 
-        @keyframes wave {
-            0%, 100% { 
-                background: #333;
-                transform: scaleY(0.5);
-            }
-            50% { 
-                background: #fff;
-                transform: scaleY(1);
-            }
-        }
+  .wave-bar:nth-child(2) {
+    animation-delay: 0.1s;
+    height: 20px;
+  }
 
-        /* Contrôle de volume */
-        .volume-wrapper {
-            margin-top: 24px;
-            padding-top: 24px;
-        }
+  .wave-bar:nth-child(3) {
+    animation-delay: 0.2s;
+    height: 28px;
+  }
 
-        .volume-bar {
-            width: 100%;
-            height: 4px;
-            background: #1a1a1a;
-            border-radius: 2px;
-            position: relative;
-            cursor: pointer;
-            margin-bottom: 8px;
-        }
+  .wave-bar:nth-child(4) {
+    animation-delay: 0.3s;
+    height: 20px;
+  }
 
-        .volume-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: #fff;
-            width: var(--volume, 100%);
-            border-radius: 2px;
-            transition: width 0.1s ease;
-        }
+  .wave-bar:nth-child(5) {
+    animation-delay: 0.4s;
+    height: 12px;
+  }
 
-        .volume-display {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #666;
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-    </style>
+  @keyframes wave {
+
+    0%,
+    100% {
+      background: #333;
+      transform: scaleY(0.5);
+    }
+
+    50% {
+      background: #fff;
+      transform: scaleY(1);
+    }
+  }
+
+  /* Contrôle de volume */
+  .volume-wrapper {
+    margin-top: 24px;
+    padding-top: 24px;
+  }
+
+  .volume-bar {
+    width: 100%;
+    height: 4px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+
+  .volume-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #fff;
+    width: var(--volume, 100%);
+    border-radius: 2px;
+    transition: width 0.1s ease;
+  }
+
+  .volume-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #666;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+</style>
 
 <body>
-    <!-- Canvas pour les particules -->
-    <canvas id="particleCanvas"></canvas>
+  <!-- Canvas pour les particules -->
+  <canvas id="particleCanvas"></canvas>
 
-    <div class="container">
-        <div class="pochette">
-            <img id="pochette" src="https://via.placeholder.com/400/1a1a1a/666?text=WAVE" alt="Cover">
-        </div>
-
-        <div class="info-container">
-            <span id="name">Now Playing</span>
-            <span id="artist">Dark Wave Radio</span>
-            <span id="annee">2025</span>
-        </div>
-
-        <div class="progress-wrapper">
-            <div class="progress-bar" id="progressBar"></div>
-            <div class="time-display">
-                <span id="currentTime">0:00</span>
-                <span id="duration">0:00</span>
-            </div>
-        </div>
-
-        <div class="controls">
-            <div class="wave-container" id="waveContainer">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-            </div>
-
-            <button class="play-button paused" id="playButton"></button>
-
-            <div class="wave-container" id="waveContainer2">
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-                <div class="wave-bar"></div>
-            </div>
-        </div>
-
-        <!-- Contrôle de volume minimaliste -->
-        <div class="volume-wrapper">
-            <div class="volume-bar" id="volumeBar"></div>
-            <div class="volume-display">
-                <span>Volume</span>
-                <span id="volumeValue">100%</span>
-            </div>
-        </div>
+  <div class="container">
+    <div class="pochette">
+      <img id="pochette" src="https://via.placeholder.com/400/1a1a1a/666?text=WAVE" alt="Cover">
     </div>
 
-    <audio src="" id="audio"></audio>
+    <div class="info-container">
+      <span id="name">Now Playing</span>
+      <span id="artist">Dark Wave Radio</span>
+      <span id="annee">2025</span>
+    </div>
+
+    <div class="progress-wrapper">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="time-display">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="wave-container" id="waveContainer">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+
+      <button class="play-button paused" id="playButton"></button>
+
+      <div class="wave-container" id="waveContainer2">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+
+    <!-- Contrôle de volume minimaliste -->
+    <div class="volume-wrapper">
+      <div class="volume-bar" id="volumeBar"></div>
+      <div class="volume-display">
+        <span>Volume</span>
+        <span id="volumeValue">100%</span>
+      </div>
+    </div>
+  </div>
+
+  <audio src="" id="audio"></audio>
 
 </body>
 <script>
-    const audio = document.getElementById("audio");
-    const pochette = document.getElementById("pochette");
-    const name = document.getElementById("name");
-    const artist = document.getElementById("artist");
-    const annee = document.getElementById("annee");
-    const playButton = document.getElementById("playButton");
-    const progressBar = document.getElementById("progressBar");
-    const currentTimeDisplay = document.getElementById("currentTime");
-    const durationDisplay = document.getElementById("duration");
-    const waveContainer = document.getElementById("waveContainer");
-    const waveContainer2 = document.getElementById("waveContainer2");
-    const volumeBar = document.getElementById("volumeBar");
-    const volumeValue = document.getElementById("volumeValue");
+  const audio = document.getElementById("audio");
+  const pochette = document.getElementById("pochette");
+  const name = document.getElementById("name");
+  const artist = document.getElementById("artist");
+  const annee = document.getElementById("annee");
+  const playButton = document.getElementById("playButton");
+  const progressBar = document.getElementById("progressBar");
+  const currentTimeDisplay = document.getElementById("currentTime");
+  const durationDisplay = document.getElementById("duration");
+  const waveContainer = document.getElementById("waveContainer");
+  const waveContainer2 = document.getElementById("waveContainer2");
+  const volumeBar = document.getElementById("volumeBar");
+  const volumeValue = document.getElementById("volumeValue");
 
-    // const IP = "172.27.212.88"
-    // const IP = "172.27.44.135"
+  // const IP = "172.27.212.88"
+  // const IP = "172.27.44.135"
 
 
-    const IP = (window.location.origin).split('//')[1].split(":")[0];
+  const IP = (window.location.origin).split('//')[1].split(":")[0];
 
-    // console.log(ui);
+  // console.log(ui);
 
-    let isPlaying = false;
-    let currentTrackPlayedAt;
-    let currentTrackUrl = null;
-    let ws = null;
-    let reconnectInterval = null;
-    let maxVolume = 1.0; // Volume maximum (0.0 à 1.0)
+  let isPlaying = false;
+  let currentTrackPlayedAt;
+  let currentTrackUrl = null;
+  let ws = null;
+  let reconnectInterval = null;
+  let maxVolume = 1.0; // Volume maximum (0.0 à 1.0)
 
-    let colorLine = "#000000";
+  let colorLine = "#000000";
 
-    // Charger le volume sauvegardé depuis localStorage
-    function loadSavedVolume() {
-        const savedVolume = localStorage.getItem('darkwave_volume');
-        if (savedVolume !== null) {
-            maxVolume = parseFloat(savedVolume);
-            console.log('📦 Volume chargé depuis localStorage:', Math.round(maxVolume * 100) + '%');
-        } else {
-            maxVolume = 1.0; // Valeur par défaut
-            console.log('📦 Pas de volume sauvegardé, utilisation de 100%');
-        }
+  // Charger le volume sauvegardé depuis localStorage
+  function loadSavedVolume() {
+    const savedVolume = localStorage.getItem('darkwave_volume');
+    if (savedVolume !== null) {
+      maxVolume = parseFloat(savedVolume);
+      console.log('📦 Volume chargé depuis localStorage:', Math.round(maxVolume * 100) + '%');
+    } else {
+      maxVolume = 1.0; // Valeur par défaut
+      console.log('📦 Pas de volume sauvegardé, utilisation de 100%');
+    }
+  }
+
+  // Sauvegarder le volume dans localStorage
+  function saveVolume(volume) {
+    localStorage.setItem('darkwave_volume', volume);
+    console.log('💾 Volume sauvegardé:', Math.round(volume * 100) + '%');
+  }
+
+  // Charger le volume au démarrage
+  loadSavedVolume();
+
+  // Initialiser le volume
+  audio.volume = maxVolume;
+  volumeBar.style.setProperty('--volume', `${maxVolume * 100}%`);
+  volumeValue.textContent = `${Math.round(maxVolume * 100)}%`;
+
+  // Fonction pour connecter au WebSocket
+  function connectWebSocket() {
+    // Nettoyer l'ancienne connexion si elle existe
+    if (ws) {
+      ws.onclose = null;
+      ws.close();
     }
 
-    // Sauvegarder le volume dans localStorage
-    function saveVolume(volume) {
-        localStorage.setItem('darkwave_volume', volume);
-        console.log('💾 Volume sauvegardé:', Math.round(volume * 100) + '%');
-    }
+    console.log('Tentative de connexion au serveur WebSocket...');
+    ws = new WebSocket(`ws://${IP}:21901`);
 
-    // Charger le volume au démarrage
-    loadSavedVolume();
+    ws.onopen = () => {
+      console.log('✅ Connecté au serveur WebSocket');
+      ws.send('Salut serveur depuis le navigateur !');
 
-    // Initialiser le volume
-    audio.volume = maxVolume;
-    volumeBar.style.setProperty('--volume', `${maxVolume * 100}%`);
-    volumeValue.textContent = `${Math.round(maxVolume * 100)}%`;
+      // Arrêter les tentatives de reconnexion
+      if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+        reconnectInterval = null;
+      }
+    };
 
-    // Fonction pour connecter au WebSocket
-    function connectWebSocket() {
-        // Nettoyer l'ancienne connexion si elle existe
-        if (ws) {
-            ws.onclose = null;
-            ws.close();
-        }
+    ws.onmessage = (event) => {
 
-        console.log('Tentative de connexion au serveur WebSocket...');
-        ws = new WebSocket(`ws://${IP}:21901`);
+      console.log('Message arrivé du serveur :', event.data);
 
-        ws.onopen = () => {
-            console.log('✅ Connecté au serveur WebSocket');
-            ws.send('Salut serveur depuis le navigateur !');
-            
-            // Arrêter les tentatives de reconnexion
-            if (reconnectInterval) {
-                clearInterval(reconnectInterval);
-                reconnectInterval = null;
-            }
-        };
+      if (JSON.parse(event.data).totalListeners) {
+        console.log('Total listeners:', JSON.parse(event.data).totalListeners);
 
-        ws.onmessage = (event) => {
-            let data = JSON.parse(event.data).currentTrack;
-            console.log('Message du serveur :', data);
+        return;
+      } else if (JSON.parse(event.data).currentTrack) {
+        let data = JSON.parse(event.data).currentTrack;
+        console.log('Message du serveur :', data);
 
-            // Vérifier si c'est un nouveau morceau
-            const newTrackUrl = data.trackInfo.url;
-            
-            if (newTrackUrl !== currentTrackUrl) {
-                console.log('Nouveau morceau détecté:', newTrackUrl);
-                currentTrackUrl = newTrackUrl;
-                currentTrackPlayedAt = data.playedAt;
-                
-                let delta = (new Date(nowMySQLms()) - new Date(data.playedAt));
-                console.log('Delta:', delta);
+        // Vérifier si c'est un nouveau morceau
+        const newTrackUrl = data.trackInfo.url;
 
-                audio.src =  "/Music/" + data.trackInfo.url;
-                audio.currentTime = delta / 1000;
-                audio.volume = maxVolume;
-                
-                audio.play().then(() => {
-                    isPlaying = true;
-                    playButton.classList.remove('paused');
-                    playButton.classList.add('playing');
-                    waveContainer.style.setProperty('--animation-state', 'running');
-                    waveContainer2.style.setProperty('--animation-state', 'running');
-                }).catch(err => {
-                    console.error('Erreur lecture:', err);
-                });
+        if (newTrackUrl !== currentTrackUrl) {
+          console.log('Nouveau morceau détecté:', newTrackUrl);
+          currentTrackUrl = newTrackUrl;
+          currentTrackPlayedAt = data.playedAt;
 
-                pochette.src = "/Covers/" + data.trackInfo.cover;
-                name.textContent = data.trackInfo.titre;
-                artist.textContent = data.trackInfo.artiste;
-                annee.textContent = data.trackInfo.annee ?? "0000";
+          let delta = (new Date(nowMySQLms()) - new Date(data.playedAt));
+          console.log('Delta:', delta);
 
-                console.log('Couleur de la ligne:', data.dominantColor);
-                colorLine = data.lineColor;
-            }
-        };
+          audio.src = "/Music/" + data.trackInfo.url;
+          audio.currentTime = delta / 1000;
+          audio.volume = maxVolume;
 
-        ws.onerror = (error) => {
-            console.error('❌ Erreur WebSocket:', error);
-        };
-
-        ws.onclose = () => {
-            console.log('❌ Déconnecté du serveur WebSocket');
-            
-            // Lancer la reconnexion automatique si pas déjà en cours
-            if (!reconnectInterval) {
-                console.log('🔄 Tentative de reconnexion dans 3 secondes...');
-                reconnectInterval = setInterval(() => {
-                    console.log('🔄 Reconnexion en cours...');
-                    connectWebSocket();
-                }, 3000);
-            }
-        };
-    }
-
-    // Connexion initiale
-    connectWebSocket();
-
-    function nowMySQLms() {
-        return new Date()
-            .toISOString()
-            .replace('T', ' ')
-            .replace(/\.\d{3}Z$/, m => m.slice(0, -1));
-    }
-
-    // Bouton Play/Pause
-    playButton.addEventListener('click', () => {
-        if (isPlaying) {
-            audio.volume = 0;
-            isPlaying = false;
-            playButton.classList.remove('playing');
-            playButton.classList.add('paused');
-            waveContainer.style.setProperty('--animation-state', 'paused');
-            waveContainer2.style.setProperty('--animation-state', 'paused');
-        } else {
-            audio.volume = maxVolume;
+          audio.play().then(() => {
             isPlaying = true;
-            if (audio.paused) {
-                audio.play().then(() => {
-                    console.log('Audio démarré');
-                }).catch(err => {
-                    console.error('Erreur lecture:', err);
-                });
-            }
-            let delta = (new Date(nowMySQLms()) - new Date(currentTrackPlayedAt));
-            audio.currentTime = delta / 1000;
             playButton.classList.remove('paused');
             playButton.classList.add('playing');
             waveContainer.style.setProperty('--animation-state', 'running');
             waveContainer2.style.setProperty('--animation-state', 'running');
+          }).catch(err => {
+            console.error('Erreur lecture:', err);
+          });
+
+          pochette.src = "/Covers/" + data.trackInfo.cover;
+          name.textContent = data.trackInfo.titre;
+          artist.textContent = data.trackInfo.artiste;
+          annee.textContent = data.trackInfo.annee ?? "0000";
+
+          console.log('Couleur de la ligne:', data.dominantColor);
+          colorLine = data.lineColor;
         }
-    });
+      }
 
-    // Contrôle du volume
-    volumeBar.addEventListener('click', (e) => {
-        const rect = volumeBar.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const percentage = clickX / rect.width;
-        maxVolume = Math.max(0, Math.min(1, percentage));
-        
-        // Mettre à jour l'affichage
-        volumeBar.style.setProperty('--volume', `${maxVolume * 100}%`);
-        volumeValue.textContent = `${Math.round(maxVolume * 100)}%`;
-        
-        // Sauvegarder dans localStorage
-        saveVolume(maxVolume);
-        
-        // Appliquer le volume si en lecture
-        if (isPlaying) {
-            audio.volume = maxVolume;
-        }
-        
-        console.log('🔊 Volume max défini à:', Math.round(maxVolume * 100) + '%');
-    });
 
-    // Mise à jour progression
-    audio.addEventListener('timeupdate', () => {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        progressBar.style.setProperty('--progress', `${progress}%`);
-        currentTimeDisplay.textContent = formatTime(audio.currentTime);
-    });
+    };
 
-    audio.addEventListener('loadedmetadata', () => {
-        durationDisplay.textContent = formatTime(audio.duration);
-    });
+    ws.onerror = (error) => {
+      console.error('❌ Erreur WebSocket:', error);
+    };
 
-    // Format temps
-    function formatTime(seconds) {
-        if (isNaN(seconds)) return '0:00';
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }
+    ws.onclose = () => {
+      console.log('❌ Déconnecté du serveur WebSocket');
 
-    // Quand le morceau se termine
-    audio.addEventListener('ended', () => {
-        console.log('Morceau terminé, en attente du prochain...');
-        waveContainer.style.setProperty('--animation-state', 'paused');
-        waveContainer2.style.setProperty('--animation-state', 'paused');
-    });
+      // Lancer la reconnexion automatique si pas déjà en cours
+      if (!reconnectInterval) {
+        console.log('🔄 Tentative de reconnexion dans 3 secondes...');
+        reconnectInterval = setInterval(() => {
+          console.log('🔄 Reconnexion en cours...');
+          connectWebSocket();
+        }, 3000);
+      }
+    };
+  }
 
-    // ============================================
-    // SYSTÈME DE PARTICULES CANVAS
-    // ============================================
-    
-    const canvas = document.getElementById('particleCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Redimensionner le canvas
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    
-    // Classe Particule
-    class Particle {
-        constructor() {
-            this.reset();
-        }
-        
-        reset() {
-            this.x = Math.random() * canvas.width;
-            this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 2 + 0.5;
-            this.speedX = (Math.random() - 0.5) * 0.5;
-            this.speedY = (Math.random() - 0.5) * 0.5;
-            this.opacity = Math.random() * 0.5 + 0.2;
-            this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
-        }
-        
-        update() {
-            this.x += this.speedX;
-            this.y += this.speedY;
-            
-            // Rebond sur les bords
-            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-        }
-        
-        draw() {
-            ctx.fillStyle = this.color;
-            ctx.globalAlpha = this.opacity;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-    
-    // Créer les particules
-    const particles = [];
-    var particleCount;
+  // Connexion initiale
+  connectWebSocket();
 
-    if (window.innerWidth < 600) {
-        particleCount = 100;
-    }else if (window.innerWidth < 900) {
-        particleCount = 150;
-    }else if (window.innerWidth < 1200) {
-        particleCount = 250;
-    }else if (window.innerWidth < 1600) {
-        particleCount = 350;
-    }else if (window.innerWidth < 2000) {
-        particleCount = 550;
-    }else {
-        particleCount = 700;
-    }
+  function nowMySQLms() {
+    return new Date()
+      .toISOString()
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z$/, m => m.slice(0, -1));
+  }
 
-    
-    for (let i = 0; i < particleCount; i++) {
-        particles.push(new Particle());
-    }
-    
-    // Animation
-    function animateParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        console.log(colorLine);
-        
-        // Dessiner les connexions entre particules proches
-        ctx.globalAlpha = 0.1;
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-
-                if (distance < 120) {
-                    ctx.strokeStyle = colorLine;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.stroke();
-                }
-            }
-        }
-        
-        // Mettre à jour et dessiner les particules
-        particles.forEach(particle => {
-            particle.update();
-            particle.draw();
+  // Bouton Play/Pause
+  playButton.addEventListener('click', () => {
+    if (isPlaying) {
+      audio.volume = 0;
+      isPlaying = false;
+      playButton.classList.remove('playing');
+      playButton.classList.add('paused');
+      waveContainer.style.setProperty('--animation-state', 'paused');
+      waveContainer2.style.setProperty('--animation-state', 'paused');
+    } else {
+      audio.volume = maxVolume;
+      isPlaying = true;
+      if (audio.paused) {
+        audio.play().then(() => {
+          console.log('Audio démarré');
+        }).catch(err => {
+          console.error('Erreur lecture:', err);
         });
-        
-        requestAnimationFrame(animateParticles);
+      }
+      let delta = (new Date(nowMySQLms()) - new Date(currentTrackPlayedAt));
+      audio.currentTime = delta / 1000;
+      playButton.classList.remove('paused');
+      playButton.classList.add('playing');
+      waveContainer.style.setProperty('--animation-state', 'running');
+      waveContainer2.style.setProperty('--animation-state', 'running');
     }
-    
-    animateParticles();
+  });
+
+  // Contrôle du volume
+  volumeBar.addEventListener('click', (e) => {
+    const rect = volumeBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+    maxVolume = Math.max(0, Math.min(1, percentage));
+
+    // Mettre à jour l'affichage
+    volumeBar.style.setProperty('--volume', `${maxVolume * 100}%`);
+    volumeValue.textContent = `${Math.round(maxVolume * 100)}%`;
+
+    // Sauvegarder dans localStorage
+    saveVolume(maxVolume);
+
+    // Appliquer le volume si en lecture
+    if (isPlaying) {
+      audio.volume = maxVolume;
+    }
+
+    console.log('🔊 Volume max défini à:', Math.round(maxVolume * 100) + '%');
+  });
+
+  // Mise à jour progression
+  audio.addEventListener('timeupdate', () => {
+    const progress = (audio.currentTime / audio.duration) * 100;
+    progressBar.style.setProperty('--progress', `${progress}%`);
+    currentTimeDisplay.textContent = formatTime(audio.currentTime);
+  });
+
+  audio.addEventListener('loadedmetadata', () => {
+    durationDisplay.textContent = formatTime(audio.duration);
+  });
+
+  // Format temps
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // Quand le morceau se termine
+  audio.addEventListener('ended', () => {
+    console.log('Morceau terminé, en attente du prochain...');
+    waveContainer.style.setProperty('--animation-state', 'paused');
+    waveContainer2.style.setProperty('--animation-state', 'paused');
+  });
+
+  // ============================================
+  // SYSTÈME DE PARTICULES CANVAS
+  // ============================================
+
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Redimensionner le canvas
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // Classe Particule
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 2 + 0.5;
+      this.speedX = (Math.random() - 0.5) * 0.5;
+      this.speedY = (Math.random() - 0.5) * 0.5;
+      this.opacity = Math.random() * 0.5 + 0.2;
+      this.color = Math.random() > 0.5 ? '#ffffff' : '#666666';
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+
+      // Rebond sur les bords
+      if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+      if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.opacity;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Créer les particules
+  const particles = [];
+  var particleCount;
+
+  if (window.innerWidth < 600) {
+    particleCount = 100;
+  } else if (window.innerWidth < 900) {
+    particleCount = 150;
+  } else if (window.innerWidth < 1200) {
+    particleCount = 250;
+  } else if (window.innerWidth < 1600) {
+    particleCount = 350;
+  } else if (window.innerWidth < 2000) {
+    particleCount = 550;
+  } else {
+    particleCount = 700;
+  }
+
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+  }
+
+  // Animation
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log(colorLine);
+
+    // Dessiner les connexions entre particules proches
+    ctx.globalAlpha = 0.1;
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+
+        if (distance < 120) {
+          ctx.strokeStyle = colorLine;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Mettre à jour et dessiner les particules
+    particles.forEach(particle => {
+      particle.update();
+      particle.draw();
+    });
+
+    requestAnimationFrame(animateParticles);
+  }
+
+  animateParticles();
 </script>
 
 </html>

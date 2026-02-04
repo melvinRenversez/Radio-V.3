@@ -90,7 +90,7 @@ select * from titles;
 
 select * from history h
 join status s on s.id = h.fk_status
-order by id desc;
+order by h.id desc;
 
 select * from status;
 
@@ -149,3 +149,12 @@ SELECT titles.id,
 FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste 
 LEFT JOIN covers ON covers.id = titles.fk_cover
 where titles.id = 1;
+
+
+SELECT h.id, titre, t.id as titre_id, duree, annee, status, c.url as cover, nom as artist, played_at 
+         FROM history h  
+         join status s on s.id = h.fk_status
+         JOIN titles t ON t.id = h.fk_title 
+         JOIN covers c ON c.id = t.fk_cover 
+         JOIN artistes a ON a.id = t.fk_artiste 
+         ORDER BY h.id DESC;
