@@ -664,6 +664,7 @@
       opacity: 0;
       transform: translateY(12px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -960,20 +961,7 @@
     </div>
 
     <!-- Content -->
-    <div class="content-section">
-      <div class="section-header">
-        <div class="section-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          Mes Couvertures
-        </div>
-        <span class="section-count" id="sectionCount">0 fichier</span>
-      </div>
-      <div id="coversContainer"></div>
-    </div>
+   
   </div>
 
   <!-- Toast -->
@@ -995,8 +983,11 @@
     // ============================================
 
     function levenshtein(a, b) {
-      const m = a.length, n = b.length;
-      const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+      const m = a.length,
+        n = b.length;
+      const dp = Array.from({
+        length: m + 1
+      }, () => Array(n + 1).fill(0));
 
       for (let i = 0; i <= m; i++) dp[i][0] = i;
       for (let j = 0; j <= n; j++) dp[0][j] = j;
@@ -1182,7 +1173,7 @@
     function handleFileSelect(file) {
       if (file.type.startsWith('image/')) {
         selectedFile = file;
-        
+
         // Afficher la prévisualisation
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -1196,7 +1187,7 @@
           input.value = file.name;
           input.dispatchEvent(new Event('input'));
         }
-        
+
         submitBtn.disabled = false;
       }
     }
@@ -1239,21 +1230,39 @@
         return;
       }
 
+      const formData = new FormData();
+
+      // Ajouter le nom de la couverture
+      const coverName = document.getElementById('coverInput').value;
+      if (coverName) {
+        formData.append('coverName', coverName);
+      }
+
+      // Ajouter le fichier si sélectionné
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput.files.length > 0) {
+        formData.append('cover', fileInput.files[0]);
+      }
+
       submitBtn.classList.add('loading');
       submitBtn.disabled = true;
 
-      // TODO: Remplacer par votre vraie requête
-      fetch("/add-cover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: val })
-      }).then(() => {
-        window.location.href = "/admin";
-      });
+      try {
+        const response = await fetch("/add-cover", {
+          method: "POST",
+          body: formData // Pas de Content-Type, le navigateur le gère automatiquement
+        });
 
-      // Simule succès
-      covers.push({ url: val });
-      showToast(`"${val}" a été ajouté avec succès.`, 'success');
+        if (response.ok) {
+          window.location.href = "/admin";
+        } else {
+          const error = await response.json();
+          showToast(error.error || 'Erreur lors de l\'ajout', 'error');
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        showToast('Erreur lors de l\'ajout', 'error');
+      }
 
       // Reset
       input.value = '';
@@ -1286,56 +1295,7 @@
     // ============================================
     // RENDER
     // ============================================
-    function renderCovers() {
-      document.getElementById('coverCount').textContent = covers.length;
-      document.getElementById('sectionCount').textContent = covers.length + (covers.length === 1 ? ' fichier' : ' fichiers');
-
-      if (covers.length === 0) {
-        coversContainer.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <div class="empty-text">Aucune couverture pour le moment</div>
-            <div class="empty-subtext">Ajoutez votre première couverture ci-dessus</div>
-          </div>
-        `;
-        return;
-      }
-
-      coversContainer.innerHTML = `
-        <div class="covers-grid">
-          ${covers.map((cover, index) => `
-            <div class="cover-card" style="animation-delay: ${index * 0.06}s">
-              <div class="cover-image-container">
-                <img src="${cover.url}" 
-                     alt="${cover.url}" 
-                     class="cover-image"
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22%3E%3Crect fill=%22%230a0a0a%22 width=%22200%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2245%25%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2240%22 dy=%22.3em%22%3E📷%3C/text%3E%3Ctext x=%2250%25%22 y=%2260%25%22 text-anchor=%22middle%22 fill=%22%23444%22 font-size=%2214%22%3EImage non disponible%3C/text%3E%3C/svg%3E'">
-              </div>
-              <div class="cover-info">
-                <div class="cover-name">${cover.url.split('.')[0]}</div>
-                <div class="cover-url">${cover.url}</div>
-                <div class="cover-actions">
-                  <button class="btn btn-view" onclick="viewCover('${cover.url}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    Voir
-                  </button>
-                  <button class="btn btn-delete" onclick="deleteCover(${index})">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                    Supprimer
-                  </button>
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
+    
 
     // ============================================
     // PARTICULES CANVAS
@@ -1419,8 +1379,6 @@
 
     animateParticles();
 
-    // Affichage initial
-    renderCovers();
   </script>
 </body>
 

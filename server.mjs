@@ -7,7 +7,10 @@ import express from 'express';
 import { execFile } from "child_process";
 import sharp from "sharp";
 import { promisify } from "util";
+import * as fsSync from "node:fs";
 import fs from "fs/promises";
+import multer from 'multer';
+
 
 
 const pool = mysql.createPool({
@@ -123,9 +126,9 @@ app.get("/history/:page", async (req, res) => {
         `SELECT h.id, titre, t.id as titre_id, duree, annee, status, c.url as cover, nom as artist, played_at 
          FROM history h  
          join status s on s.id = h.fk_status
-         JOIN titles t ON t.id = h.fk_title 
-         JOIN covers c ON c.id = t.fk_cover 
-         JOIN artistes a ON a.id = t.fk_artiste 
+         LEFT JOIN titles t ON t.id = h.fk_title 
+         LEFT JOIN covers c ON c.id = t.fk_cover 
+         LEFT JOIN artistes a ON a.id = t.fk_artiste 
          ORDER BY h.id DESC 
          LIMIT ? OFFSET ?`,
         [limit, offset]
@@ -135,6 +138,8 @@ app.get("/history/:page", async (req, res) => {
     const totalCount = countResult[0].count;
 
     console.log(rows);
+    console.log(rows.length);
+    console.log(totalCount);
 
     res.render("history", {
         history: rows,
@@ -190,6 +195,113 @@ app.post("/add-artist", async (req, res) => {
     await pool.query("INSERT INTO artistes (nom) VALUES (?)", [artist]);
     res.redirect("/admin");
 })
+
+
+// ADD COVER __________________________________________________________________________________________________________________
+
+// Configuration de Multer pour le stockage des images
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const coversDir = path.join(__dirname, "Covers");
+
+        if (!fsSync.existsSync(coversDir)) {
+            fsSync.mkdirSync(coversDir, { recursive: true });
+        }
+
+        cb(null, coversDir);
+    },
+
+    filename: function (req, file, cb) {
+        cb(null, file.originalname);
+    }
+});
+
+
+// Filtre pour accepter uniquement les images
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|webp|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb(new Error('Seules les images sont autorisées (JPG, PNG, WEBP, GIF)'));
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // Limite de 10MB
+    }
+});
+
+// Route pour ajouter une couverture
+app.post("/add-cover", upload.single('cover'), async (req, res) => {
+    try {
+
+        console.log(req);
+
+        console.log("📥 Adding cover:", req.body);
+        console.log("📁 File uploaded:", req.file);
+
+        const { coverName } = req.body;
+        let filename;
+
+        // Si un fichier a été uploadé, utiliser son nom
+        if (req.file) {
+            filename = req.file.filename;
+        }
+        // Sinon, utiliser le nom fourni dans le formulaire
+        else if (coverName) {
+            filename = coverName;
+        }
+        // Erreur si aucun des deux n'est fourni
+        else {
+            return res.status(400).json({ error: "Veuillez fournir un nom de couverture ou uploader un fichier" });
+        }
+
+        // Insérer dans la base de données
+        await pool.query("INSERT INTO covers (url) VALUES (?)", [filename]);
+
+        console.log("✅ Cover added successfully:", filename);
+        res.redirect("/admin");
+
+    } catch (error) {
+        console.error("❌ Error adding cover:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Route pour supprimer une couverture
+app.post("/delete-cover/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Récupérer l'URL de la couverture avant de la supprimer
+        const [cover] = await pool.query("SELECT url FROM covers WHERE id = ?", [id]);
+
+        if (cover.length > 0) {
+            // Supprimer le fichier physique
+            const filePath = path.join(__dirname, 'Covers', cover[0].url);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log("🗑️ File deleted:", filePath);
+            }
+
+            // Supprimer de la base de données
+            await pool.query("DELETE FROM covers WHERE id = ?", [id]);
+            console.log("✅ Cover deleted from database:", id);
+        }
+
+        res.redirect("/admin");
+    } catch (error) {
+        console.error("❌ Error deleting cover:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 
 app.post("/add-title", async (req, res) => {
@@ -544,7 +656,30 @@ async function playTack() {
 
 
 
-    pool.query("INSERT INTO history (fk_title) VALUES (?)", [currentTrack.trackInfo.id]);
+    console.log("history: " + JSON.stringify(currentTrack));
+
+
+    try {
+        console.log("📌 Inserting into history...");
+        console.log("Track ID:", currentTrack.trackInfo.id);
+
+        const [result] = await pool.query(
+            "INSERT INTO history (fk_title) VALUES (?)",
+            [currentTrack.trackInfo.id]
+        );
+
+        console.log("✅ Insert success!");
+        console.log("Inserted ID:", result.insertId);
+
+    } catch (err) {
+        console.error("❌ INSERT FAILED!");
+        console.error("Message:", err.message);
+        console.error("Code:", err.code);
+        console.error("SQL State:", err.sqlState);
+        console.error("Full error:", err);
+    }
+
+
     currentTrack.playedAt = nowMySQLms();
     broadcastTrack();
 

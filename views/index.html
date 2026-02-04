@@ -287,6 +287,17 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
+
+ .total-listenner {
+  text-align: end;
+  color: #666;
+  margin-bottom: 10px;
+  font-style: italic;
+ } 
+
+ #total-listenner-span {
+  font-weight: bold;
+ }
 </style>
 
 <body>
@@ -294,6 +305,12 @@
   <canvas id="particleCanvas"></canvas>
 
   <div class="container">
+
+    <div class="total-listenner">
+      <span id="total-listenner-span">1200</span>
+      <span>Online</span>
+    </div>
+
     <div class="pochette">
       <img id="pochette" src="https://via.placeholder.com/400/1a1a1a/666?text=WAVE" alt="Cover">
     </div>
@@ -359,6 +376,7 @@
   const waveContainer2 = document.getElementById("waveContainer2");
   const volumeBar = document.getElementById("volumeBar");
   const volumeValue = document.getElementById("volumeValue");
+  const totalListenersSpan = document.getElementById("total-listenner-span");
 
   // const IP = "172.27.212.88"
   // const IP = "172.27.44.135"
@@ -431,6 +449,8 @@
 
       if (JSON.parse(event.data).totalListeners) {
         console.log('Total listeners:', JSON.parse(event.data).totalListeners);
+
+        totalListenersSpan.textContent = JSON.parse(event.data).totalListeners;
 
         return;
       } else if (JSON.parse(event.data).currentTrack) {

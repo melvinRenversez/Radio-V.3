@@ -31,8 +31,11 @@ CREATE TABLE titles (
 drop table covers;
 CREATE TABLE covers (
     id      INTEGER PRIMARY KEY AUTO_INCREMENT,
-    url TEXT NOT NULL
+    url TEXT NOT NULL default 'default.png'
 );
+
+ALTER TABLE covers MODIFY url VARCHAR(255) NOT NULL DEFAULT 'default.png';
+
 
 drop table artistes;
 CREATE TABLE artistes (
@@ -99,6 +102,7 @@ join artistes on artistes.id = fk_artiste
 join covers on covers.id = fk_cover
 ;
 
+describe covers;
 
 select h.id, titre, played_at
 from history h
@@ -154,7 +158,7 @@ where titles.id = 1;
 SELECT h.id, titre, t.id as titre_id, duree, annee, status, c.url as cover, nom as artist, played_at 
          FROM history h  
          join status s on s.id = h.fk_status
-         JOIN titles t ON t.id = h.fk_title 
-         JOIN covers c ON c.id = t.fk_cover 
-         JOIN artistes a ON a.id = t.fk_artiste 
+         LEFT JOIN titles t ON t.id = h.fk_title 
+         LEFT JOIN covers c ON c.id = t.fk_cover 
+         LEFT JOIN artistes a ON a.id = t.fk_artiste 
          ORDER BY h.id DESC;
