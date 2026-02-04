@@ -10,6 +10,7 @@ import { promisify } from "util";
 import * as fsSync from "node:fs";
 import fs from "fs/promises";
 import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 
 
 
@@ -66,7 +67,7 @@ app.get('/admin', async (req, res) => {
 app.get("/add-title", async (req, res) => {
 
     const [artistes] = await pool.query("select id, nom from artistes;");
-    const [covers] = await pool.query("select id, url from covers;");
+    const [covers] = await pool.query("select id, url, name_cover from covers;");
 
     const files = await fs.readdir(musicFolder);
     const mp3s = files.filter(file => file.endsWith(".mp3"));
@@ -238,33 +239,37 @@ const upload = multer({
     }
 });
 
+
 // Route pour ajouter une couverture
 app.post("/add-cover", upload.single('cover'), async (req, res) => {
     try {
 
-        console.log(req);
-
-        console.log("📥 Adding cover:", req.body);
+        console.log("📥 Adding cover:", req.body.coverName);
         console.log("📁 File uploaded:", req.file);
 
         const { coverName } = req.body;
         let filename;
 
-        // Si un fichier a été uploadé, utiliser son nom
         if (req.file) {
-            filename = req.file.filename;
+            // Générer un UUID + extension du fichier original
+            const ext = path.extname(req.file.originalname); // ex: .jpg, .png
+            filename = `${uuidv4()}${ext}`;
+
+            // Renommer le fichier uploadé avec le nouveau nom
+            const oldPath = req.file.path;
+            const newPath = path.join(path.dirname(oldPath), filename);
+            await fs.rename(oldPath, newPath); // Utilise fs/promises
         }
-        // Sinon, utiliser le nom fourni dans le formulaire
         else if (coverName) {
-            filename = coverName;
+            // Si pas de fichier uploadé, on peut quand même créer un nom unique
+            filename = `${uuidv4()}_${coverName}`;
         }
-        // Erreur si aucun des deux n'est fourni
         else {
             return res.status(400).json({ error: "Veuillez fournir un nom de couverture ou uploader un fichier" });
         }
 
         // Insérer dans la base de données
-        await pool.query("INSERT INTO covers (url) VALUES (?)", [filename]);
+        await pool.query("INSERT INTO covers (url, name_cover) VALUES (?, ?)", [filename, coverName || filename]);
 
         console.log("✅ Cover added successfully:", filename);
         res.redirect("/admin");

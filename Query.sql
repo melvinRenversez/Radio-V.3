@@ -31,10 +31,9 @@ CREATE TABLE titles (
 drop table covers;
 CREATE TABLE covers (
     id      INTEGER PRIMARY KEY AUTO_INCREMENT,
-    url TEXT NOT NULL default 'default.png'
+    url TEXT NOT NULL ,
+    name_cover varchar(255) not null
 );
-
-ALTER TABLE covers MODIFY url VARCHAR(255) NOT NULL DEFAULT 'default.png';
 
 
 drop table artistes;
@@ -110,8 +109,8 @@ join titles t on t.id = h.fk_title
 order by h.id desc limit 4;
 
 
-insert into titles(titre, url, fk_cover, fk_artiste)values
-("In the Open", "Lone Assembly - In the Open (Official Music Video).mp3", 1, 1);
+insert into titles(titre, url)values
+("Everybody Hurts", "Everybody_Hurts.mp3");
 
 
 
