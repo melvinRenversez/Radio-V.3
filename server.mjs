@@ -732,7 +732,9 @@ async function getAllTitles() {
     try {
 
         const nb = await pool.query("SELECT count(*) as nb FROM titles;");
-        const limit = (nb[0][0].nb) - 1;
+        const limit = Math.round((nb[0][0].nb) /2);
+
+        console.log("LIMIT: " + limit)
 
         const [rows] = await pool.query("SELECT titles.id, titles.created_at as created, COALESCE(titles.titre,'Unknown') AS titre,  COALESCE(titles.url,'') AS url,  COALESCE(titles.annee,'0000') AS annee,  COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover  FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste  LEFT JOIN covers ON covers.id = titles.fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit ?) AS last);", [limit]);
 
