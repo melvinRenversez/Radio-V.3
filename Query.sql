@@ -27,6 +27,8 @@ CREATE TABLE titles (
         REFERENCES artistes(id)
         ON DELETE cascade
 );
+ALTER TABLE titles ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP;
+
 
 drop table covers;
 CREATE TABLE covers (

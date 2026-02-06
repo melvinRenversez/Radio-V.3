@@ -185,7 +185,7 @@ app.get("/add-artist", async (req, res) => {
 
 app.get("/add-cover", async (req, res) => {
 
-    const [covers] = await pool.query("select url from covers;");
+    const [covers] = await pool.query("select id, url from covers;");
 
     res.render("add-cover", { covers });
 })
@@ -291,8 +291,8 @@ app.post("/delete-cover/:id", async (req, res) => {
         if (cover.length > 0) {
             // Supprimer le fichier physique
             const filePath = path.join(__dirname, 'Covers', cover[0].url);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
+            if (fsSync.existsSync(filePath)) {
+                fsSync.unlinkSync(filePath);
                 console.log("🗑️ File deleted:", filePath);
             }
 
@@ -423,6 +423,12 @@ app.post("/edit-title/:id", async (req, res) => {
     artist = artist || null;
     cover = cover || null;
     year = year || null;
+
+    console.log("edit info")
+    console.log(url)
+    console.log(year)
+    console.log(artist)
+    console.log(cover)
 
     try {
         // ========================================
@@ -632,26 +638,36 @@ async function main() {
 async function newTrack() {
 
     await getAllTitles();
-    let x = Math.floor(Math.random() * allTitles.length);
-    let track = allTitles[x];
-    currentTrack.trackInfo = track;
 
-    if (await fileExists(path.join(musicFolder, track.url))) {
-        console.log(path.join(musicFolder, track.url));
-        let duration = Math.floor((await parseFile(path.join(musicFolder, track.url))).format.duration);
-        let lineColor = await getAverageColor(path.join(coversFolder, track.cover));
-
-        currentTrack.duration = duration;
-        currentTrack.lineColor = lineColor;
-
-        playTack();
-    } else {
-        console.log('File does not exist');
-
-        pool.query("INSERT INTO history (fk_title, fk_status) VALUES (?, ?)", [currentTrack.trackInfo.id, 2]);
-
-        newTrack();
+    if (allTitles.length === 0) {
+        console.log('No titles found');
+        console.log('Waiting 10 seconds...');
+        setTimeout(() => {
+            newTrack();   
+        }, 10000)  
+    }else {
+        let x = Math.floor(Math.random() * allTitles.length);
+        let track = allTitles[x];
+        currentTrack.trackInfo = track;
+    
+        if (await fileExists(path.join(musicFolder, track.url))) {
+            console.log(path.join(musicFolder, track.url));
+            let duration = Math.floor((await parseFile(path.join(musicFolder, track.url))).format.duration);
+            let lineColor = await getAverageColor(path.join(coversFolder, track.cover));
+    
+            currentTrack.duration = duration;
+            currentTrack.lineColor = lineColor;
+    
+            playTack();
+        } else {
+            console.log('File does not exist');
+    
+            pool.query("INSERT INTO history (fk_title, fk_status) VALUES (?, ?)", [currentTrack.trackInfo.id, 2]);
+    
+            newTrack();
+        }
     }
+
 
 }
 
@@ -704,7 +720,7 @@ async function playTack() {
                 // console.log("Precise time: " + (new Date(nowMySQLms()) - new Date(currentTrack.playedAt)));
                 // console.log("Played at: " + currentTrack.playedAt);
 
-                console.log("Total listeners: " + totalListeners);
+                // console.log("Total listeners: " + totalListeners);
             }
 
         },
@@ -718,7 +734,7 @@ async function getAllTitles() {
         const nb = await pool.query("SELECT count(*) as nb FROM titles;");
         const limit = (nb[0][0].nb) - 1;
 
-        const [rows] = await pool.query("SELECT titles.id, COALESCE(titles.titre,'Unknown') AS titre,  COALESCE(titles.url,'') AS url,  COALESCE(titles.annee,'0000') AS annee,  COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover  FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste  LEFT JOIN covers ON covers.id = titles.fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit ?) AS last);", [limit]);
+        const [rows] = await pool.query("SELECT titles.id, titles.created_at as created, COALESCE(titles.titre,'Unknown') AS titre,  COALESCE(titles.url,'') AS url,  COALESCE(titles.annee,'0000') AS annee,  COALESCE(artistes.nom,'Unknown') AS artiste, COALESCE(covers.url,'default.png') AS cover  FROM titles LEFT JOIN artistes ON artistes.id = titles.fk_artiste  LEFT JOIN covers ON covers.id = titles.fk_cover where titles.id not in (select fk_title from(select fk_title from history order by id desc limit ?) AS last);", [limit]);
 
         console.log("_____________________ Limit Selected ________________________")
         console.log(rows)
@@ -728,7 +744,7 @@ async function getAllTitles() {
         console.error("Erreur lors de la requête MySQL:", err);
         allTitles = [];
     }
-
+    
     console.log('✅ Title added to allTitles:');
     for (const title of allTitles) {
         console.log(title.titre);

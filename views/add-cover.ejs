@@ -845,6 +845,94 @@
     stroke-width: 2.5;
   }
 
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .modal.show {
+    display: flex;
+    opacity: 1;
+  }
+
+  .modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    position: relative;
+    animation: modalZoomIn 0.3s ease;
+  }
+
+  @keyframes modalZoomIn {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .modal-image {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: #fff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .modal-close:hover {
+    transform: scale(1.1) rotate(90deg);
+    background: #e8774d;
+  }
+
+  .modal-close svg {
+    width: 20px;
+    height: 20px;
+    stroke: #0a0a0a;
+    stroke-width: 2.5;
+  }
+
+  .modal-info {
+    position: absolute;
+    bottom: -60px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     h1 {
@@ -868,6 +956,16 @@
       font-size: 16px;
       padding: 16px 18px 16px 48px;
     }
+
+    .modal-close {
+      top: 10px;
+      right: 10px;
+    }
+
+    .modal-info {
+      position: static;
+      margin-top: 20px;
+    }
   }
 </style>
 
@@ -880,7 +978,7 @@
       <h1>Add Cover</h1>
       <p class="subtitle">Ajouter une nouvelle couverture à votre bibliothèque</p>
       <div class="header-actions">
-        <a href="/" class="action-btn">
+        <a href="/admin" class="action-btn">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -960,7 +1058,30 @@
       </button>
     </div>
 
-    <!-- Content -->
+    <!-- Content - Liste des covers -->
+    <div class="content-section">
+      <div class="section-header">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          Bibliothèque
+        </div>
+        <span class="section-count" id="sectionCount">0 couvertures</span>
+      </div>
+      
+      <div class="covers-grid" id="coversGrid">
+        <!-- Les covers seront insérées ici par JavaScript -->
+      </div>
+      
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">Aucune couverture</div>
+        <div class="empty-subtext">Commencez par ajouter votre première couverture</div>
+      </div>
+    </div>
    
   </div>
 
@@ -970,6 +1091,20 @@
       <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
     <span id="toastText"></span>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="imageModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <img id="modalImage" class="modal-image" alt="Preview">
+      <div class="modal-info" id="modalInfo"></div>
+    </div>
   </div>
 
   <script>
@@ -1250,11 +1385,13 @@
       try {
         const response = await fetch("/add-cover", {
           method: "POST",
-          body: formData // Pas de Content-Type, le navigateur le gère automatiquement
+          body: formData
         });
 
         if (response.ok) {
-          window.location.href = "/admin";
+          showToast('Couverture ajoutée avec succès', 'success');
+          
+          window.location.reload();
         } else {
           const error = await response.json();
           showToast(error.error || 'Erreur lors de l\'ajout', 'error');
@@ -1264,38 +1401,127 @@
         showToast('Erreur lors de l\'ajout', 'error');
       }
 
-      // Reset
-      input.value = '';
-      charCount.textContent = '0 / 128';
-      charCount.classList.remove('warning');
       submitBtn.disabled = true;
       submitBtn.classList.remove('loading');
-      selectedFile = null;
-      uploadArea.classList.remove('has-image');
-      document.getElementById('similarityPanel').classList.remove('visible');
-      renderCovers();
     });
+
+    // ============================================
+    // RENDER COVERS
+    // ============================================
+    function renderCovers() {
+      const grid = document.getElementById('coversGrid');
+      const emptyState = document.getElementById('emptyState');
+      const coverCount = document.getElementById('coverCount');
+      const sectionCount = document.getElementById('sectionCount');
+      
+      coverCount.textContent = covers.length;
+      sectionCount.textContent = covers.length + (covers.length <= 1 ? ' couverture' : ' couvertures');
+      
+      if (covers.length === 0) {
+        grid.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      grid.style.display = 'grid';
+      emptyState.style.display = 'none';
+      grid.innerHTML = '';
+      
+      covers.forEach((cover, index) => {
+        const card = document.createElement('div');
+        card.className = 'cover-card';
+        card.style.animationDelay = `${index * 0.05}s`;
+        card.innerHTML = `
+          <div class="cover-image-container">
+            <img src="../Covers/${cover.url}" alt="${cover.url}" class="cover-image" loading="lazy">
+          </div>
+          <div class="cover-info">
+            <div class="cover-name">${cover.url}</div>
+            <div class="cover-url">${cover.url}</div>
+            <div class="cover-actions">
+              <button class="btn btn-view" onclick="viewCover('${cover.url}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                Voir
+              </button>
+              <button class="btn btn-delete" onclick="deleteCover(${cover.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Supprimer
+              </button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
 
     // ============================================
     // ACTIONS
     // ============================================
-    function deleteCover(index) {
-      const cover = covers[index];
+    async function deleteCover(id) {
+      const cover = covers.find(c => c.id === id);
+      if (!cover) return;
+      
       if (confirm(`Êtes-vous sûr de vouloir supprimer "${cover.url}" ?`)) {
-        covers.splice(index, 1);
-        showToast(`"${cover.url}" supprimé`, 'success');
-        renderCovers();
+        try {
+          const response = await fetch(`/delete-cover/${id}`, {
+            method: 'POST'
+          });
+          
+          if (response.ok) {
+            covers = covers.filter(c => c.id !== id);
+            showToast(`"${cover.url}" supprimé`, 'success');
+            renderCovers();
+          } else {
+            showToast('Erreur lors de la suppression', 'error');
+          }
+        } catch (error) {
+          console.error('Erreur:', error);
+          showToast('Erreur lors de la suppression', 'error');
+        }
       }
     }
 
     function viewCover(url) {
-      window.open(url, '_blank');
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      const modalInfo = document.getElementById('modalInfo');
+      
+      modalImage.src = "../Covers/"+url;
+      modalInfo.textContent = url;
+      modal.classList.add('show');
+      
+      // Fermer avec Escape
+      document.addEventListener('keydown', handleEscape);
+      
+      // Fermer en cliquant sur le fond
+      modal.addEventListener('click', handleModalClick);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('imageModal');
+      modal.classList.remove('show');
+      document.removeEventListener('keydown', handleEscape);
+      modal.removeEventListener('click', handleModalClick);
+    }
+
+    function handleEscape(e) {
+      if (e.key === 'Escape') closeModal();
+    }
+
+    function handleModalClick(e) {
+      if (e.target.id === 'imageModal') closeModal();
     }
 
     // ============================================
-    // RENDER
+    // INIT
     // ============================================
-    
+    renderCovers();
 
     // ============================================
     // PARTICULES CANVAS

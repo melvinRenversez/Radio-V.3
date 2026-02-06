@@ -298,6 +298,19 @@
  #total-listenner-span {
   font-weight: bold;
  }
+
+ #new {
+ opacity: 0;
+  position: absolute;
+  color: #666;
+  margin-bottom: 10px;
+  font-style: italic;
+ }
+
+  .newAc{
+    opacity: 1 !important;
+  }
+
 </style>
 
 <body>
@@ -305,6 +318,10 @@
   <canvas id="particleCanvas"></canvas>
 
   <div class="container">
+
+    <div id="new" class="newAc">
+      NEW !!!
+    </div>
 
     <div class="total-listenner">
       <span id="total-listenner-span">1200</span>
@@ -377,6 +394,7 @@
   const volumeBar = document.getElementById("volumeBar");
   const volumeValue = document.getElementById("volumeValue");
   const totalListenersSpan = document.getElementById("total-listenner-span");
+  const newDiv = document.getElementById("new");
 
   // const IP = "172.27.212.88"
   // const IP = "172.27.44.135"
@@ -413,6 +431,13 @@
     console.log('💾 Volume sauvegardé:', Math.round(volume * 100) + '%');
   }
 
+  function estMoinsDe24h(dateISO) {
+    const date = new Date(dateISO); // convertir la chaîne en objet Date
+    const maintenant = new Date(); // date actuelle
+    const difference = maintenant - date; // différence en millisecondes
+    return difference < 24 * 60 * 60 * 1000; // true si moins de 24h
+}
+
   // Charger le volume au démarrage
   loadSavedVolume();
 
@@ -445,28 +470,36 @@
 
     ws.onmessage = (event) => {
 
-      console.log('Message arrivé du serveur :', event.data);
+      // console.log('Message arrivé du serveur :', event.data);
 
       if (JSON.parse(event.data).totalListeners) {
-        console.log('Total listeners:', JSON.parse(event.data).totalListeners);
+        // console.log('Total listeners:', JSON.parse(event.data).totalListeners);
 
         totalListenersSpan.textContent = JSON.parse(event.data).totalListeners;
 
         return;
       } else if (JSON.parse(event.data).currentTrack) {
         let data = JSON.parse(event.data).currentTrack;
-        console.log('Message du serveur :', data);
+        // console.log('Message du serveur :', data);
 
         // Vérifier si c'est un nouveau morceau
         const newTrackUrl = data.trackInfo.url;
 
         if (newTrackUrl !== currentTrackUrl) {
-          console.log('Nouveau morceau détecté:', newTrackUrl);
+          // console.log('Nouveau morceau détecté:', newTrackUrl);
           currentTrackUrl = newTrackUrl;
           currentTrackPlayedAt = data.playedAt;
 
           let delta = (new Date(nowMySQLms()) - new Date(data.playedAt));
-          console.log('Delta:', delta);
+          // console.log('Delta:', delta);
+
+  
+          // console.log(data.trackInfo.created)
+          if (estMoinsDe24h(data.trackInfo.created)) {
+            newDiv.classList.add('newAc');
+          }else {
+            newDiv.classList.remove('newAc');
+          }
 
           audio.src = "/Music/" + data.trackInfo.url;
           audio.currentTime = delta / 1000;
@@ -487,7 +520,7 @@
           artist.textContent = data.trackInfo.artiste;
           annee.textContent = data.trackInfo.annee ?? "0000";
 
-          console.log('Couleur de la ligne:', data.dominantColor);
+          // console.log('Couleur de la ligne:', data.dominantColor);
           colorLine = data.lineColor;
         }
       }
@@ -537,7 +570,7 @@
       isPlaying = true;
       if (audio.paused) {
         audio.play().then(() => {
-          console.log('Audio démarré');
+          // console.log('Audio démarré');
         }).catch(err => {
           console.error('Erreur lecture:', err);
         });
@@ -570,7 +603,7 @@
       audio.volume = maxVolume;
     }
 
-    console.log('🔊 Volume max défini à:', Math.round(maxVolume * 100) + '%');
+    // console.log('🔊 Volume max défini à:', Math.round(maxVolume * 100) + '%');
   });
 
   // Mise à jour progression
@@ -674,7 +707,7 @@
   // Animation
   function animateParticles() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    console.log(colorLine);
+    // console.log(colorLine);
 
     // Dessiner les connexions entre particules proches
     ctx.globalAlpha = 0.1;
